@@ -1,0 +1,12 @@
+Evidencia complementaria de la auditoría v1 (docs/auditoria-v1.md, SW-06): CDP en un
+puerto de usuario. Salida obtenida por Karla en Packet Tracer (modo EXEC privilegiado,
+#) y transcrita tal como la entregó. 2026-11-10.
+
+SW-HQ-2#show cdp interface fastEthernet 0/12
+FastEthernet0/12 is up, line protocol is up
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+
+--- Resumen ---
+CDP está activo en Fa0/12 de SW-HQ-2 (PC-INV, VLAN 40 Invitados): el switch envía
+anuncios cada 60 segundos a cualquier equipo conectado en ese puerto.

@@ -1,0 +1,317 @@
+Evidencia complementaria de la auditoría v1 (docs/auditoria-v1.md): STP, base de VLANs y
+trunks de los switches. Salidas obtenidas por Karla en Packet Tracer (modo EXEC
+privilegiado, #) y transcritas tal como las entregó. 2026-11-10.
+
+############################################################
+SW-HQ-1
+############################################################
+
+SW-HQ-1#show spanning-tree
+VLAN0001
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32769
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0010
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0020
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0030
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32798
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32798  (priority 32768 sys-id-ext 30)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0040
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0099
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+############################################################
+SW-HQ-2
+############################################################
+
+SW-HQ-2#show spanning-tree
+VLAN0001
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32769
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0010
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/10           Desg FWD 19        128.10   P2p
+
+VLAN0020
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+
+VLAN0030
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32798
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32798  (priority 32768 sys-id-ext 30)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg FWD 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#show vlan brief
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/1
+                                                Gig0/2
+10   ADMINISTRACION                   active    Fa0/10
+20   VENTAS                           active    Fa0/11
+30   TI                               active
+40   INVITADOS                        active    Fa0/12
+99   GESTION                          active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+
+SW-HQ-2#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+Fa0/2       on           802.1q         trunking      1
+
+Port        Vlans allowed on trunk
+Fa0/1       1-1005
+Fa0/2       1-1005
+
+Port        Vlans allowed and active in management domain
+Fa0/1       1,10,20,30,40,99
+Fa0/2       1,10,20,30,40,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       1,10,20,30,40,99
+Fa0/2       none
+
+############################################################
+SW-SUC
+############################################################
+
+SW-SUC#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Gig0/1      on           802.1q         trunking      1
+
+Port        Vlans allowed on trunk
+Gig0/1      1-1005
+
+Port        Vlans allowed and active in management domain
+Gig0/1      1,50,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gig0/1      1,50,99
+
+SW-SUC#show vlan brief
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9, Fa0/11, Fa0/12, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/2
+50   VENTAS-SUCURSAL                  active    Fa0/10
+99   GESTION                          active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+
+--- Resumen ---
+STP (SW-04): SW-HQ-1 es el puente raíz en las seis VLANs (1, 10, 20, 30, 40 y 99) con
+la prioridad por defecto (32768 + VLAN), elegido por tener la MAC más baja
+(000D.BD84.508B frente a 0030.F29A.CABC de SW-HQ-2), no por configuración. SW-HQ-2
+Fa0/2 está en Altn BLK en todas las VLANs; show interfaces trunk lo confirma con "none"
+en forwarding state. El protocolo es ieee (PVST clásico).
+Puertos de acceso (SW-03): Fa0/10 de SW-HQ-1 y Fa0/10, Fa0/11 y Fa0/12 de SW-HQ-2
+aparecen como "P2p" sin "Edge": no tienen PortFast.
+Trunks (SW-02): SW-HQ-2 (Fa0/1, Fa0/2) y SW-SUC (Gi0/1) con VLAN nativa 1 y VLANs
+permitidas 1-1005.
+VLANs (SW-01 y diseño): nombres y puertos de acceso coinciden con el diseño; los puertos
+sin uso están en la VLAN 1, incluidos Gi0/1 y Gi0/2 de SW-HQ-2.

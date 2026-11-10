@@ -40,8 +40,8 @@ de IA.
 |---|---|
 | 1. Diseño | Terminada |
 | 2. Red base (v1) | Terminada |
-| 3. Auditoría de la v1 con Claude Code | Siguiente |
-| 4. Red optimizada (v2) y validación | Pendiente |
+| 3. Auditoría de la v1 con Claude Code | Terminada |
+| 4. Red optimizada (v2) y validación | Siguiente |
 | 5. Documentación final | Pendiente |
 
 **Fase 2:** la red base está configurada y verificada según `docs/plan-pruebas-v1.md`:
@@ -50,6 +50,14 @@ la red de gestión (fase B), y servicios DNS y web en SRV-TI (fase C). La eviden
 en `tests/` y `evidence/`. Las pruebas confirman que la v1 funciona, pero también que no
 tiene controles de acceso: la red de Invitados llega a las redes internas y a la gestión.
 Esos hallazgos son el punto de partida de la auditoría (fase 3).
+
+**Fase 3:** la auditoría de la v1 está en `docs/auditoria-v1.md`: 21 hallazgos (5 de
+severidad alta, 8 media, 7 baja y 1 informativa), cada uno con su evidencia y una
+recomendación para la v2. Después de la auditoría, en `docs/comparacion-auditoria-v1.md`
+se comparó con las debilidades introducidas a propósito en la v1: encontró 11 de 12. A
+partir de esa comparación se agregaron dos hallazgos (DIS-01, IPv6 no implementado, y
+SW-06, CDP en los puertos de usuarios), marcados como tales en la auditoría, y SW-05
+subió de Baja a Media.
 
 ## Aviso sobre credenciales
 
@@ -71,6 +79,10 @@ en ningún sistema real y se corregirán en la v2.
 ```
 
 ## Uso de IA
+
+El trabajo con IA tuvo dos etapas: la v1 la construyó Karla en la CLI de Packet Tracer,
+con Claude (claude.ai) como guía paso a paso; después se incorporó Claude Code para las
+pruebas, la documentación y la auditoría.
 
 Claude Code se usa como asistente: revisa configuraciones, propone planes y explica
 conceptos. Los comandos en Packet Tracer, las pruebas y las decisiones son de Karla.

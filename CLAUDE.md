@@ -56,8 +56,9 @@ enterprise-network-optimization/
 
 1. Diseño — terminado.
 2. Red base (v1) — terminada.
-3. Auditoría con Claude Code de `configurations/v1/` — siguiente.
-4. Red optimizada (v2) y validación.
+3. Auditoría con Claude Code de `configurations/v1/` — terminada
+   (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
+4. Red optimizada (v2) y validación — siguiente.
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -144,7 +145,8 @@ Cada router anuncia sus redes LAN y la red WAN 10.255.255.0/30.
   `tests/v1-dhcp-pcs.txt`). La fase B del plan de pruebas (B1 a B4) está verificada
   (`tests/v1-ping.txt`).
 - Sin pendientes: la v1 está completa y verificada (fases A, B y C del plan de pruebas).
-  Los hallazgos ⚠ del plan son entradas para la auditoría de la fase 3.
+  La auditoría (fase 3) registró 21 hallazgos en `docs/auditoria-v1.md`, que son la
+  base de la v2.
 
 La v1 representa una red armada "con prisa" por una pyme: funciona, pero no aplica
 buenas prácticas. Es intencional y se corrige en la v2. No corrijas la v1 por tu
