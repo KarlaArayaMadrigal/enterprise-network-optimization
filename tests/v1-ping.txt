@@ -287,3 +287,245 @@ primer paquete (3/4), lo que es compatible con la resolución ARP; en el segundo
 las seis pruebas dieron 4/4, 0 % de pérdida. B2.5 y B2.6 (Invitados hacia TI y hacia
 Administración) tienen éxito por falta de ACLs y quedan como hallazgos para la
 auditoría (fase 3).
+
+############################################################
+B3. Entre sedes (OSPF y enlace WAN) — 2026-11-10
+############################################################
+
+=== B3.1 PC-SUC -> 10.255.255.2 (interfaz WAN de R-SUC) ===
+
+C:\>ping 10.255.255.2
+
+Pinging 10.255.255.2 with 32 bytes of data:
+
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time=8ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.255.255.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 8ms, Average = 2ms
+
+=== B3.2 PC-SUC -> 10.255.255.1 (interfaz WAN de R-HQ) ===
+
+C:\>ping 10.255.255.1
+
+Pinging 10.255.255.1 with 32 bytes of data:
+
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time=19ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.255.255.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 19ms, Average = 4ms
+
+=== B3.3 PC-SUC -> 10.10.30.10 (SRV-TI, VLAN 50 -> 30) ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B3.4 PC-SUC -> 10.10.10.21 (PC-ADM, VLAN 50 -> 10) ===
+
+C:\> ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B3.5 PC-ADM -> 10.20.50.21 (PC-SUC, VLAN 10 -> 50) ===
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=10ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+=== B3.6 PC-VEN -> 10.20.50.21 (PC-SUC, VLAN 20 -> 50) ===
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B3.7 PC-INV -> 10.20.50.21 (PC-SUC, VLAN 40 -> 50) [⚠ hallazgo] ===
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- Resumen B3 ---
+Las siete pruebas: 4/4, 0 % de pérdida, sin pérdida del primer paquete. Los TTL
+coinciden con el camino esperado: 255 (responde R-SUC directamente), 254 (responde
+R-HQ tras un salto por R-SUC) y 126 (responde un equipo final tras dos saltos, R-SUC y
+R-HQ). Hay rutas entre sedes en los dos sentidos; que provengan de OSPF se documenta en
+tests/v1-ospf.txt. B3.7 (Invitados hacia la sucursal) tiene éxito por falta de ACLs y
+queda como hallazgo para la auditoría (fase 3).
+
+############################################################
+B4. Red de gestión (VLAN 99) — 2026-11-10
+############################################################
+
+------------------------------------------------------------
+Primer intento
+------------------------------------------------------------
+
+=== B4.1 R-HQ -> 10.10.99.11 (SW-HQ-1) y 10.10.99.12 (SW-HQ-2) ===
+
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+..!!!
+Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/0 ms
+
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+..!!!
+Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/1 ms
+
+=== B4.2 R-SUC -> 10.20.99.11 (SW-SUC) ===
+
+R-SUC#ping 10.20.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.20.99.11, timeout is 2 seconds:
+..!!!
+Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/0 ms
+
+=== B4.3 PC-ADM -> 10.20.99.11 (SW-SUC, gestión de la sucursal) ===
+
+C:\>ping 10.20.99.11
+
+Pinging 10.20.99.11 with 32 bytes of data:
+
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+
+Ping statistics for 10.20.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B4.4 PC-SUC -> 10.10.99.11 (SW-HQ-1, gestión de la central) [⚠ hallazgo] ===
+
+C:\>ping 10.10.99.11
+
+Pinging 10.10.99.11 with 32 bytes of data:
+
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=253
+
+Ping statistics for 10.10.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B4.5 PC-INV -> 10.10.99.12 (SW-HQ-2, gestión desde Invitados) [⚠ hallazgo] ===
+
+C:\>ping 10.10.99.12
+
+Pinging 10.10.99.12 with 32 bytes of data:
+
+Reply from 10.10.99.12: bytes=32 time=1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.10.99.12:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+------------------------------------------------------------
+Repetición (solo los routers: B4.1 y B4.2)
+------------------------------------------------------------
+
+=== B4.1 R-HQ -> 10.10.99.11 (SW-HQ-1) y 10.10.99.12 (SW-HQ-2) ===
+
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+=== B4.2 R-SUC -> 10.20.99.11 (SW-SUC) ===
+
+R-SUC#ping 10.20.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.20.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+--- Resumen B4 ---
+B4.1 y B4.2: el primer intento dio 3/5 (..!!!), con pérdidas solo al inicio, compatible
+con la resolución ARP; la repetición dio 5/5 en los tres pings. B4.3, B4.4 y B4.5: 4/4,
+0 % de pérdida, en un solo intento. Los switches responden con TTL inicial 255: TTL=253
+indica dos routers en el camino (R-HQ y R-SUC) y TTL=254, uno (R-HQ). B4.4 (gestión de
+la central desde la sucursal) y B4.5 (gestión desde Invitados) tienen éxito por falta
+de ACLs y quedan como hallazgos para la auditoría (fase 3).

@@ -138,9 +138,9 @@ Cada router anuncia sus redes LAN y la red WAN 10.255.255.0/30.
 - Listos: SW-HQ-1, SW-HQ-2, SW-SUC, R-HQ, R-SUC.
 - SRV-TI: IP fija configurada (10.10.30.10/24). Pendientes los servicios DNS y web.
 - PCs: las cuatro reciben IP por DHCP (fase A del plan de pruebas, con evidencia en
-  `tests/v1-dhcp-pcs.txt`). La B1 y la B2 están verificadas (`tests/v1-ping.txt`).
-- Pendientes: pruebas B3 y B4 de `docs/plan-pruebas-v1.md` (incluida la repetición
-  de la B4.1) y los servicios DNS y web de SRV-TI.
+  `tests/v1-dhcp-pcs.txt`). La fase B del plan de pruebas (B1 a B4) está verificada
+  (`tests/v1-ping.txt`).
+- Pendientes: los servicios DNS y web de SRV-TI.
 
 La v1 representa una red armada "con prisa" por una pyme: funciona, pero no aplica
 buenas prácticas. Es intencional y se corrige en la v2. No corrijas la v1 por tu

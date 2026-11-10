@@ -74,23 +74,27 @@ Evidencia: `tests/v1-ping.txt`, sección B2.
 
 | # | Origen | Destino | Qué valida | Esperado | Obtenido |
 |---|---|---|---|---|---|
-| B3.1 | PC-SUC | 10.255.255.2 | Interfaz WAN de R-SUC | Éxito | |
-| B3.2 | PC-SUC | 10.255.255.1 | Cruce del enlace WAN hasta R-HQ | Éxito | |
-| B3.3 | PC-SUC | 10.10.30.10 (SRV-TI) | Ruta OSPF hacia la VLAN 30 | Éxito | |
-| B3.4 | PC-SUC | IP-ADM | Ruta OSPF hacia la VLAN 10 | Éxito | |
-| B3.5 | PC-ADM | IP-SUC | Ruta OSPF hacia la VLAN 50 (sentido inverso) | Éxito | |
-| B3.6 | PC-VEN | IP-SUC | Ventas central → Ventas sucursal | Éxito | |
-| B3.7 | PC-INV | IP-SUC | Invitados → sucursal | Éxito ⚠ | |
+| B3.1 | PC-SUC | 10.255.255.2 | Interfaz WAN de R-SUC | Éxito | Éxito (4/4, 0 % de pérdida, TTL=255) |
+| B3.2 | PC-SUC | 10.255.255.1 | Cruce del enlace WAN hasta R-HQ | Éxito | Éxito (4/4, 0 % de pérdida, TTL=254) |
+| B3.3 | PC-SUC | 10.10.30.10 (SRV-TI) | Ruta OSPF hacia la VLAN 30 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=126) |
+| B3.4 | PC-SUC | IP-ADM | Ruta OSPF hacia la VLAN 10 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=126) |
+| B3.5 | PC-ADM | IP-SUC | Ruta OSPF hacia la VLAN 50 (sentido inverso) | Éxito | Éxito (4/4, 0 % de pérdida, TTL=126) |
+| B3.6 | PC-VEN | IP-SUC | Ventas central → Ventas sucursal | Éxito | Éxito (4/4, 0 % de pérdida, TTL=126) |
+| B3.7 | PC-INV | IP-SUC | Invitados → sucursal | Éxito ⚠ | Éxito (4/4, 0 % de pérdida, TTL=126). Hallazgo para la auditoría |
+
+Evidencia: `tests/v1-ping.txt`, sección B3.
 
 ### B4. Red de gestión (VLAN 99)
 
 | # | Origen | Destino | Qué valida | Esperado | Obtenido |
 |---|---|---|---|---|---|
-| B4.1 | R-HQ | 10.10.99.11 y 10.10.99.12 | Gestión de SW-HQ-1 y SW-HQ-2 (primer intento en `tests/v1-r-hq-router-on-a-stick.txt`, 3/5; falta repetirla al 100 %) | Éxito | |
-| B4.2 | R-SUC | 10.20.99.11 | Gestión de SW-SUC y trunk de la sucursal | Éxito | |
-| B4.3 | PC-ADM | 10.20.99.11 | Gestión de la sucursal desde la central | Éxito | |
-| B4.4 | PC-SUC | 10.10.99.11 | Gestión de la central desde la sucursal | Éxito ⚠ | |
-| B4.5 | PC-INV | 10.10.99.12 | Gestión desde la red de invitados | Éxito ⚠ | |
+| B4.1 | R-HQ | 10.10.99.11 y 10.10.99.12 | Gestión de SW-HQ-1 y SW-HQ-2 (primer intento en `tests/v1-r-hq-router-on-a-stick.txt`, 3/5) | Éxito | Éxito (5/5 hacia .11 y .12 en la repetición). Los intentos anteriores dieron 3/5 por pérdida inicial (ARP) |
+| B4.2 | R-SUC | 10.20.99.11 | Gestión de SW-SUC y trunk de la sucursal | Éxito | Éxito (5/5 en la repetición). El primer intento dio 3/5 por pérdida inicial (ARP) |
+| B4.3 | PC-ADM | 10.20.99.11 | Gestión de la sucursal desde la central | Éxito | Éxito (4/4, 0 % de pérdida, TTL=253) |
+| B4.4 | PC-SUC | 10.10.99.11 | Gestión de la central desde la sucursal | Éxito ⚠ | Éxito (4/4, 0 % de pérdida, TTL=253). Hallazgo para la auditoría |
+| B4.5 | PC-INV | 10.10.99.12 | Gestión desde la red de invitados | Éxito ⚠ | Éxito (4/4, 0 % de pérdida, TTL=254). Hallazgo para la auditoría |
+
+Evidencia: `tests/v1-ping.txt`, sección B4.
 
 ## Pruebas marcadas con ⚠
 
