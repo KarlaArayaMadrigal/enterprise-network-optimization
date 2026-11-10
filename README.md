@@ -46,7 +46,7 @@ de IA.
 
 **Fase 2:** routers y switches configurados, con vecindad OSPF FULL entre sedes. Ya están
 verificados el DHCP de las cuatro PCs y su conectividad con el gateway local
-(`tests/dhcp-pcs.txt` y `tests/ping-v1.txt`). Faltan las pruebas entre VLANs, entre
+(`tests/v1-dhcp-pcs.txt` y `tests/v1-ping.txt`). Faltan las pruebas entre VLANs, entre
 sedes y de gestión, además de los servicios DNS y web de SRV-TI. El plan de pruebas
 está en `docs/plan-pruebas-v1.md`.
 

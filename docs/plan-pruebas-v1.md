@@ -29,7 +29,7 @@ válida. Anota la IP que reciba cada una, porque se usa en la fase B.
 | A3 | PC-INV | SW-HQ-2 Fa0/12 / VLAN 40 | 10.10.40.21-.254 | 255.255.255.0 | 10.10.40.1 | 10.10.30.10 | 10.10.40.21 | Sí |
 | A4 | PC-SUC | SW-SUC Fa0/10 / VLAN 50 | 10.20.50.21-.254 | 255.255.255.0 | 10.20.50.1 | 10.10.30.10 | 10.20.50.21 | Sí |
 
-Evidencia: `tests/dhcp-pcs.txt` (asignaciones de R-HQ y R-SUC e `ipconfig /all` de las
+Evidencia: `tests/v1-dhcp-pcs.txt` (asignaciones de R-HQ y R-SUC e `ipconfig /all` de las
 cuatro PCs). En las cuatro coinciden la máscara, el gateway, el DNS y el dominio, y la
 MAC de cada PC coincide con su asignación en el router.
 
@@ -55,7 +55,7 @@ fase A.
 | B1.3 | PC-INV | 10.10.40.1 | Acceso, trunk y subinterfaz .40 | Éxito | Éxito (4/4, 0 % de pérdida) |
 | B1.4 | PC-SUC | 10.20.50.1 | Acceso, trunk y subinterfaz .50 | Éxito | Éxito (4/4, 0 % de pérdida) |
 
-Evidencia: `tests/ping-v1.txt`, sección B1.
+Evidencia: `tests/v1-ping.txt`, sección B1.
 
 ### B2. Entre VLANs en la sede central (router-on-a-stick en R-HQ)
 
@@ -118,6 +118,6 @@ antes de seguir.
 
 ## Evidencia
 
-- Guarda las salidas de texto en `tests/` (por ejemplo, `tests/dhcp-pcs.txt` y
-  `tests/ping-v1.txt`).
+- Guarda las salidas de texto en `tests/` (por ejemplo, `tests/v1-dhcp-pcs.txt` y
+  `tests/v1-ping.txt`).
 - Guarda las capturas de IP Configuration de cada PC en `evidence/`.
