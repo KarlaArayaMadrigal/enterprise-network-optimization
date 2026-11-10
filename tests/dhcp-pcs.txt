@@ -1,0 +1,105 @@
+Fase A del plan de pruebas v1 (docs/plan-pruebas-v1.md): verificación de DHCP
+Fecha: 2026-11-09
+Salidas obtenidas por Karla en Packet Tracer y transcritas tal como las entregó.
+
+=== R-HQ: asignaciones DHCP ===
+
+R-HQ#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.10.10.21      0030.A3ED.5E46           --                     Automatic
+10.10.20.21      0010.1172.A4CD           --                     Automatic
+10.10.40.21      0001.63CA.DB04           --                     Automatic
+
+=== R-SUC: asignaciones DHCP ===
+
+R-SUC#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.20.50.21      0030.F2CE.822A           --                     Automatic
+
+=== PC-ADM: ipconfig /all ===
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.A3ED.5E46
+   Link-local IPv6 Address.........: FE80::230:A3FF:FEED:5E46
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.10.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.10.1
+   DHCP Servers....................: 10.10.10.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-62-AA-B8-86-00-30-A3-ED-5E-46
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-VEN: ipconfig /all ===
+(La salida se entregó sin la línea de encabezado "FastEthernet0 Connection".)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0010.1172.A4CD
+   Link-local IPv6 Address.........: FE80::210:11FF:FE72:A4CD
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.20.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.20.1
+   DHCP Servers....................: 10.10.20.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-63-DE-73-00-00-10-11-72-A4-CD
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-INV: ipconfig /all ===
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0001.63CA.DB04
+   Link-local IPv6 Address.........: FE80::201:63FF:FECA:DB04
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.40.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.40.1
+   DHCP Servers....................: 10.10.40.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-3B-78-0C-62-00-01-63-CA-DB-04
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-SUC: ipconfig /all ===
+(La salida se entregó sin el nombre de la PC. Se identifica como PC-SUC porque su MAC
+coincide con la asignación de R-SUC.)
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.F2CE.822A
+   Link-local IPv6 Address.........: FE80::230:F2FF:FECE:822A
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.20.50.1
+   DHCP Servers....................: 10.20.50.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== Resumen ===
+
+| PC     | IP          | MAC            | Gateway    | DNS         | Servidor DHCP | ¿Coincide con el diseño? |
+|--------|-------------|----------------|------------|-------------|---------------|--------------------------|
+| PC-ADM | 10.10.10.21 | 0030.A3ED.5E46 | 10.10.10.1 | 10.10.30.10 | R-HQ          | Sí                       |
+| PC-VEN | 10.10.20.21 | 0010.1172.A4CD | 10.10.20.1 | 10.10.30.10 | R-HQ          | Sí                       |
+| PC-INV | 10.10.40.21 | 0001.63CA.DB04 | 10.10.40.1 | 10.10.30.10 | R-HQ          | Sí                       |
+| PC-SUC | 10.20.50.21 | 0030.F2CE.822A | 10.20.50.1 | 10.10.30.10 | R-SUC         | Sí                       |
+
+Las cuatro PCs tienen máscara 255.255.255.0 y dominio horizonte.internal. Las MAC de
+las PCs coinciden con las asignaciones de los routers. IPv6 muestra "::" porque en el
+diseño está solo planificado.

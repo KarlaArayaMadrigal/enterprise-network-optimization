@@ -1,0 +1,75 @@
+Fase B del plan de pruebas v1 (docs/plan-pruebas-v1.md): pruebas de conectividad
+Salidas obtenidas por Karla en Packet Tracer (Desktop > Command Prompt de cada PC) y
+transcritas tal como las entregó.
+
+############################################################
+B1. Gateway local — 2026-11-09
+############################################################
+
+=== B1.1 PC-ADM -> 10.10.10.1 (gateway VLAN 10, R-HQ) ===
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time=5ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 5ms, Average = 1ms
+
+=== B1.2 PC-VEN -> 10.10.20.1 (gateway VLAN 20, R-HQ) ===
+
+C:\>PING 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B1.3 PC-INV -> 10.10.40.1 (gateway VLAN 40, R-HQ) ===
+
+C:\>PING 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=3ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 3ms, Average = 0ms
+
+=== B1.4 PC-SUC -> 10.20.50.1 (gateway VLAN 50, R-SUC) ===
+
+C:\>PING 10.20.50.1
+
+Pinging 10.20.50.1 with 32 bytes of data:
+
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.20.50.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- Resumen B1 ---
+Las cuatro pruebas: 4/4 respuestas, 0 % de pérdida, TTL=255 (respuesta directa del
+router, sin saltos intermedios).

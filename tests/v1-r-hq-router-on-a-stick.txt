@@ -1,0 +1,16 @@
+Router-on-stick
+R-HQ(config-if)#do ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+..!!!
+Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/0 ms
+
+R-HQ(config-if)#do ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+..!!!
+Success rate is 60 percent (3/5), round-trip min/avg/max = 0/0/1 ms
+
+R-HQ(config-if)#

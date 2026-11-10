@@ -1,0 +1,49 @@
+SW-HQ-1(config-vlan)#DO SH VLAN BRIEF
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9, Fa0/10, Fa0/11, Fa0/12
+                                                Fa0/13, Fa0/14, Fa0/15, Fa0/16
+                                                Fa0/17, Fa0/18, Fa0/19, Fa0/20
+                                                Fa0/21, Fa0/22, Fa0/23, Fa0/24
+                                                Gig0/1, Gig0/2
+10   ADMINISTRACION                   active    
+20   VENTAS                           active    
+30   TI                               active    
+40   INVITADOS                        active    
+99   GESTION                          active    
+1002 fddi-default                     active    
+1003 token-ring-default               active    
+1004 fddinet-default                  active    
+1005 trnet-default                    active  
+
+SW-HQ-1(config-if-range)#switchport mode trunk
+
+
+SW-HQ-1(config-if-range)#
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to down
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
+
+SW-HQ-1(config-if-range)#do sh int trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+Fa0/2       on           802.1q         trunking      1
+
+Port        Vlans allowed on trunk
+Fa0/1       1-1005
+Fa0/2       1-1005
+
+Port        Vlans allowed and active in management domain
+Fa0/1       1,10,20,30,40,99
+Fa0/2       1,10,20,30,40,99
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       1,10,20,30,40,99
+Fa0/2       1,10,20,30,40,99

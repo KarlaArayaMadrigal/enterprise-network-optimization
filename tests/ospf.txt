@@ -1,0 +1,12 @@
+R-SUC#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           1   FULL/DR         00:00:32    10.255.255.1    GigabitEthernet0/0/1
+R-SUC#show ip route ospf
+     10.0.0.0/8 is variably subnetted, 11 subnets, 3 masks
+O       10.10.10.0 [110/2] via 10.255.255.1, 00:02:35, GigabitEthernet0/0/1
+O       10.10.20.0 [110/2] via 10.255.255.1, 00:02:35, GigabitEthernet0/0/1
+O       10.10.30.0 [110/2] via 10.255.255.1, 00:02:35, GigabitEthernet0/0/1
+O       10.10.40.0 [110/2] via 10.255.255.1, 00:02:35, GigabitEthernet0/0/1
+O       10.10.99.0 [110/2] via 10.255.255.1, 00:02:35, GigabitEthernet0/0/1
