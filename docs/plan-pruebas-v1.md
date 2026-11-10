@@ -61,12 +61,14 @@ Evidencia: `tests/v1-ping.txt`, sección B1.
 
 | # | Origen | Destino | Qué valida | Esperado | Obtenido |
 |---|---|---|---|---|---|
-| B2.1 | PC-ADM | IP-VEN | VLAN 10 → 20 | Éxito | |
-| B2.2 | PC-VEN | IP-INV | VLAN 20 → 40 | Éxito | |
-| B2.3 | PC-ADM | 10.10.30.10 (SRV-TI) | VLAN 10 → 30 | Éxito | |
-| B2.4 | PC-VEN | 10.10.30.10 (SRV-TI) | VLAN 20 → 30 | Éxito | |
-| B2.5 | PC-INV | 10.10.30.10 (SRV-TI) | VLAN 40 → 30 | Éxito ⚠ | |
-| B2.6 | PC-INV | IP-ADM | VLAN 40 → 10 | Éxito ⚠ | |
+| B2.1 | PC-ADM | IP-VEN | VLAN 10 → 20 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=127). El primer intento dio 3/4 por ARP |
+| B2.2 | PC-VEN | IP-INV | VLAN 20 → 40 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=127). El primer intento dio 3/4 por ARP |
+| B2.3 | PC-ADM | 10.10.30.10 (SRV-TI) | VLAN 10 → 30 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=127). El primer intento dio 3/4 por ARP |
+| B2.4 | PC-VEN | 10.10.30.10 (SRV-TI) | VLAN 20 → 30 | Éxito | Éxito (4/4, 0 % de pérdida, TTL=127) en los dos intentos |
+| B2.5 | PC-INV | 10.10.30.10 (SRV-TI) | VLAN 40 → 30 | Éxito ⚠ | Éxito (4/4, 0 % de pérdida, TTL=127). Hallazgo para la auditoría |
+| B2.6 | PC-INV | IP-ADM | VLAN 40 → 10 | Éxito ⚠ | Éxito (4/4, 0 % de pérdida, TTL=127). Hallazgo para la auditoría |
+
+Evidencia: `tests/v1-ping.txt`, sección B2.
 
 ### B3. Entre sedes (OSPF y enlace WAN)
 

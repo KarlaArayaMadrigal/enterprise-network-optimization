@@ -73,3 +73,217 @@ Approximate round trip times in milli-seconds:
 --- Resumen B1 ---
 Las cuatro pruebas: 4/4 respuestas, 0 % de pérdida, TTL=255 (respuesta directa del
 router, sin saltos intermedios).
+
+############################################################
+B2. Entre VLANs en la sede central — 2026-11-10
+############################################################
+
+------------------------------------------------------------
+Primer intento
+------------------------------------------------------------
+
+=== B2.1 PC-ADM -> 10.10.20.21 (PC-VEN, VLAN 10 -> 20) ===
+
+Cisco Packet Tracer PC Command Line 1.0
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B2.2 PC-VEN -> 10.10.40.21 (PC-INV, VLAN 20 -> 40) ===
+
+Cisco Packet Tracer PC Command Line 1.0
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time=1ms TTL=127
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B2.3 PC-ADM -> 10.10.30.10 (SRV-TI, VLAN 10 -> 30) ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B2.4 PC-VEN -> 10.10.30.10 (SRV-TI, VLAN 20 -> 30) ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B2.5 PC-INV -> 10.10.30.10 (SRV-TI, VLAN 40 -> 30) [⚠ hallazgo] ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=3ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 3ms, Average = 1ms
+
+=== B2.6 PC-INV -> 10.10.10.21 (PC-ADM, VLAN 40 -> 10) [⚠ hallazgo] ===
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+------------------------------------------------------------
+Segundo intento
+------------------------------------------------------------
+
+=== B2.1 PC-ADM -> 10.10.20.21 (PC-VEN, VLAN 10 -> 20) ===
+
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Reply from 10.10.20.21: bytes=32 time=1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B2.2 PC-VEN -> 10.10.40.21 (PC-INV, VLAN 20 -> 40) ===
+
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time=1ms TTL=127
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B2.3 PC-ADM -> 10.10.30.10 (SRV-TI, VLAN 10 -> 30) ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+=== B2.4 PC-VEN -> 10.10.30.10 (SRV-TI, VLAN 20 -> 30) ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+=== B2.5 PC-INV -> 10.10.30.10 (SRV-TI, VLAN 40 -> 30) [⚠ hallazgo] ===
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+=== B2.6 PC-INV -> 10.10.10.21 (PC-ADM, VLAN 40 -> 10) [⚠ hallazgo] ===
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- Resumen B2 ---
+Todas las respuestas llegan con TTL=127: responde el equipo de destino tras un salto por
+R-HQ (router-on-a-stick). En el primer intento, B2.1, B2.2 y B2.3 perdieron solo el
+primer paquete (3/4), lo que es compatible con la resolución ARP; en el segundo intento
+las seis pruebas dieron 4/4, 0 % de pérdida. B2.5 y B2.6 (Invitados hacia TI y hacia
+Administración) tienen éxito por falta de ACLs y quedan como hallazgos para la
+auditoría (fase 3).
