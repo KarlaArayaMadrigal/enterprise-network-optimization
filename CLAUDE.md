@@ -55,8 +55,8 @@ enterprise-network-optimization/
 ## Fases del proyecto
 
 1. Diseño — terminado.
-2. Red base (v1) — en curso.
-3. Auditoría con Claude Code de `configurations/v1/`.
+2. Red base (v1) — terminada.
+3. Auditoría con Claude Code de `configurations/v1/` — siguiente.
 4. Red optimizada (v2) y validación.
 5. Documentación final (README con comparación antes/después y uso de IA).
 
@@ -118,6 +118,8 @@ Convención: el número de VLAN coincide con el tercer octeto de la red.
 
 - Se excluyen de .1 a .20 en cada red con pool (reservadas para equipos fijos).
 - DNS en todos los pools: 10.10.30.10 (SRV-TI). Dominio: `horizonte.internal`.
+- Registros DNS en SRV-TI (tipo A, ambos hacia 10.10.30.10):
+  `srv-ti.horizonte.internal` (equipo) y `www.horizonte.internal` (servicio web).
 
 | Pool | Router | Red | Gateway |
 |---|---|---|---|
@@ -136,11 +138,13 @@ Cada router anuncia sus redes LAN y la red WAN 10.255.255.0/30.
 ## Estado actual de la v1
 
 - Listos: SW-HQ-1, SW-HQ-2, SW-SUC, R-HQ, R-SUC.
-- SRV-TI: IP fija configurada (10.10.30.10/24). Pendientes los servicios DNS y web.
+- SRV-TI: IP fija (10.10.30.10/24) y servicios DNS y web configurados y verificados
+  (fase C del plan de pruebas: `tests/v1-dns-web.txt` y capturas en `evidence/`).
 - PCs: las cuatro reciben IP por DHCP (fase A del plan de pruebas, con evidencia en
   `tests/v1-dhcp-pcs.txt`). La fase B del plan de pruebas (B1 a B4) está verificada
   (`tests/v1-ping.txt`).
-- Pendientes: los servicios DNS y web de SRV-TI.
+- Sin pendientes: la v1 está completa y verificada (fases A, B y C del plan de pruebas).
+  Los hallazgos ⚠ del plan son entradas para la auditoría de la fase 3.
 
 La v1 representa una red armada "con prisa" por una pyme: funciona, pero no aplica
 buenas prácticas. Es intencional y se corrige en la v2. No corrijas la v1 por tu

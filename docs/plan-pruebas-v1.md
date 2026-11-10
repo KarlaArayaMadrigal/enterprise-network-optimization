@@ -96,6 +96,77 @@ Evidencia: `tests/v1-ping.txt`, sección B3.
 
 Evidencia: `tests/v1-ping.txt`, sección B4.
 
+## Fase C — Servicios DNS y web en SRV-TI
+
+Registros DNS del diseño (CLAUDE.md), ambos de tipo A hacia 10.10.30.10:
+`srv-ti.horizonte.internal` (nombre del equipo) y `www.horizonte.internal` (servicio web).
+
+### C0. Configuración en SRV-TI (pestaña Services)
+
+- **DNS:** activar el servicio (en Server-PT viene apagado) y crear los dos registros
+  como A Record, con el nombre completo (incluido el dominio). Comprobar que ambos
+  aparecen en la tabla de registros.
+- **HTTP:** comprobar que el servicio está activo. Editar `index.html` para que la
+  página identifique al servidor (por ejemplo, "Comercial Horizonte S.A. (empresa
+  ficticia) — SRV-TI"), de modo que en C1 y C4 se reconozca que responde este servidor.
+
+Evidencia: `evidence/v1-c0-srv-ti-dns.png` (servicio DNS y registros),
+`evidence/v1-c0-srv-ti-http.png` (servicios HTTP y HTTPS) y
+`evidence/v1-c0-srv-ti-index.png` (contenido de `index.html`).
+
+### Pruebas
+
+El orden va de lo que menos depende de otras cosas a lo que más depende: primero web
+por IP (sin DNS), luego resolución de nombres, luego ping y web por nombre. La
+conectividad IP hacia SRV-TI ya está probada (B2.3, B2.4 y B3.3).
+
+| # | Origen | Qué hacer | Qué valida | Esperado | Obtenido |
+|---|---|---|---|---|---|
+| C1.1 | PC-ADM | Web Browser → `http://10.10.30.10` | Servicio HTTP, sin DNS | Carga la página de SRV-TI | Éxito: carga la página de SRV-TI (captura) |
+| C2.1 | PC-ADM | `nslookup www.horizonte.internal` | DNS en la misma sede | Servidor 10.10.30.10, dirección 10.10.30.10 | Éxito: servidor 10.10.30.10, dirección 10.10.30.10 |
+| C2.2 | PC-VEN | `nslookup srv-ti.horizonte.internal` | Segundo registro, otra VLAN | Servidor 10.10.30.10, dirección 10.10.30.10 | Éxito: servidor 10.10.30.10, dirección 10.10.30.10 |
+| C2.3 | PC-SUC | `nslookup www.horizonte.internal` | DNS entre sedes | Servidor 10.10.30.10, dirección 10.10.30.10 | Éxito: servidor 10.10.30.10, dirección 10.10.30.10 |
+| C2.4 | PC-ADM | `nslookup noexiste.horizonte.internal` | Prueba negativa: solo responde lo configurado | Error: nombre no encontrado | Éxito: `Non-existent domain` |
+| C3.1 | PC-ADM | `ping srv-ti.horizonte.internal` | El cliente usa el DNS | `Pinging 10.10.30.10`, 4/4, TTL=127 | Éxito (`Pinging 10.10.30.10`, 4/4, 0 % de pérdida, TTL=127) |
+| C3.2 | PC-SUC | `ping srv-ti.horizonte.internal` | Ídem, entre sedes | `Pinging 10.10.30.10`, 4/4, TTL=126 | Éxito (`Pinging 10.10.30.10`, 4/4, 0 % de pérdida, TTL=126) |
+| C4.1 | PC-ADM | Web Browser → `http://www.horizonte.internal` | Web por nombre | La misma página que en C1.1 | Éxito: carga la página de SRV-TI (captura) |
+| C4.2 | PC-VEN | Web Browser → `http://www.horizonte.internal` | Ídem, VLAN 20 | La misma página que en C1.1 | Éxito: carga la página de SRV-TI (captura) |
+| C4.3 | PC-SUC | Web Browser → `http://www.horizonte.internal` | Web por nombre entre sedes | La misma página que en C1.1 | Éxito: carga la página de SRV-TI (captura) |
+| C4.4 | PC-INV | Web Browser → `http://www.horizonte.internal` | Invitados accede a la web interna | Éxito ⚠ | Éxito: carga la página de SRV-TI (captura). Hallazgo para la auditoría |
+
+Notas:
+- `nslookup` y `ping` se ejecutan en **Desktop > Command Prompt**; el navegador está en
+  **Desktop > Web Browser**.
+- Usar siempre el nombre completo. No está comprobado que las PCs de Packet Tracer
+  agreguen el dominio recibido por DHCP a un nombre corto; si se prueba `ping srv-ti`,
+  se anota como observación, no como criterio de la prueba.
+- Si `nslookup` no existe en la versión de Packet Tracer, C3 cubre la resolución de
+  nombres de forma indirecta.
+- La primera consulta puede fallar por ARP, igual que en los pings: se repite y la
+  prueba pasa si la repetición tiene éxito.
+
+Evidencia: salidas de texto (C2 y C3) en `tests/v1-dns-web.txt`. Capturas en `evidence/`:
+`v1-c1-web-por-ip.png` (C1.1), `v1-c2-dns-nombre-inexistente.png` (C2.4) y
+`v1-c4-web-por-nombre-pc-adm.png`, `-pc-ven.png`, `-pc-suc.png` y `-pc-inv.png`
+(C4.1 a C4.4).
+
+### Observaciones para la auditoría (fase C)
+
+- **C4.4 ⚠:** la red de Invitados accede a la web interna de SRV-TI.
+- **Valores por defecto sin revisar en SRV-TI (hallazgo menor):** HTTPS está activado
+  aunque no forma parte del diseño, y siguen en el servidor los archivos de ejemplo de
+  Packet Tracer (`helloworld.html`, `image.html`, `copyrights.html` y el logo).
+
+### Cómo diagnosticar un fallo en la fase C
+
+| Síntoma | Dónde revisar primero |
+|---|---|
+| Falla C1 (web por IP) | Servicio HTTP de SRV-TI. La red no es el problema: B2 y B3 pasaron |
+| C1 pasa y C2 hace timeout | Servicio DNS apagado, o la PC tiene otro DNS (`ipconfig /all`) |
+| C2 responde que el nombre no existe | Registro mal escrito: nombre completo, tipo A e IP |
+| C2 pasa y C4 falla | URL mal escrita en el navegador o servicio HTTP apagado |
+| C2.4 devuelve una IP | Hay un registro de más en la tabla DNS |
+
 ## Pruebas marcadas con ⚠
 
 La v1 no tiene ACLs, así que **se espera que estas pruebas tengan éxito**, aunque en una
@@ -118,8 +189,6 @@ antes de seguir.
 
 ## Fuera de este plan (pendiente)
 
-- Resolución de nombres con el DNS de SRV-TI y acceso al servicio web: los servicios DNS
-  y web todavía no están configurados.
 - IPv6: está solo planificado.
 
 ## Evidencia

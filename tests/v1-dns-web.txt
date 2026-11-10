@@ -1,0 +1,122 @@
+Fase C del plan de pruebas v1 (docs/plan-pruebas-v1.md): servicios DNS y web en SRV-TI
+Salidas obtenidas por Karla en Packet Tracer (Desktop > Command Prompt de cada PC) y
+transcritas tal como las entregó. Las pruebas de configuración y de navegador solo
+tienen capturas; se listan abajo.
+
+############################################################
+C0, C1 y C4. Capturas en evidence/ — 2026-11-10
+############################################################
+
+| Prueba | Equipo | Captura                                    | Qué muestra                                   |
+|--------|--------|--------------------------------------------|-----------------------------------------------|
+| C0     | SRV-TI | evidence/v1-c0-srv-ti-dns.png              | DNS en On; registros A srv-ti y www -> 10.10.30.10 |
+| C0     | SRV-TI | evidence/v1-c0-srv-ti-http.png             | HTTP en On (HTTPS también en On)              |
+| C0     | SRV-TI | evidence/v1-c0-srv-ti-index.png            | Contenido editado de index.html               |
+| C1.1   | PC-ADM | evidence/v1-c1-web-por-ip.png              | http://10.10.30.10 carga la página de SRV-TI  |
+| C2.4   | PC-ADM | evidence/v1-c2-dns-nombre-inexistente.png  | Consola: Non-existent domain (sin nombre de PC; el origen consta abajo) |
+| C4.1   | PC-ADM | evidence/v1-c4-web-por-nombre-pc-adm.png   | http://www.horizonte.internal carga la página |
+| C4.2   | PC-VEN | evidence/v1-c4-web-por-nombre-pc-ven.png   | http://www.horizonte.internal carga la página |
+| C4.3   | PC-SUC | evidence/v1-c4-web-por-nombre-pc-suc.png   | http://www.horizonte.internal carga la página |
+| C4.4 ⚠ | PC-INV | evidence/v1-c4-web-por-nombre-pc-inv.png   | http://www.horizonte.internal carga la página |
+
+############################################################
+C2. Resolución DNS con nslookup — 2026-11-10
+############################################################
+
+=== C2.1 PC-ADM: nslookup www.horizonte.internal ===
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+=== C2.2 PC-VEN: nslookup srv-ti.horizonte.internal ===
+
+C:\>nslookup srv-ti.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   srv-ti.horizonte.internal
+Address:   10.10.30.10
+
+=== C2.3 PC-SUC: nslookup www.horizonte.internal (entre sedes) ===
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+=== C2.4 PC-ADM: nslookup noexiste.horizonte.internal (prueba negativa) ===
+(La salida incluye antes una consulta a www.horizonte.internal; se conserva tal como
+se entregó.)
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+C:\>nslookup noexiste.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+*** UnKnown can't find noexiste.horizonte.internal: Non-existent domain.
+
+############################################################
+C3. Ping por nombre — 2026-11-10
+############################################################
+
+=== C3.1 PC-ADM -> srv-ti.horizonte.internal ===
+
+C:\>ping srv-ti.horizonte.internal
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+=== C3.2 PC-SUC -> srv-ti.horizonte.internal (entre sedes) ===
+
+C:\>ping srv-ti.horizonte.internal
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+--- Resumen fase C ---
+Las 11 pruebas pasan. Web por IP (C1.1) y por nombre (C4.1 a C4.4) cargan la página
+editada de SRV-TI. Las consultas DNS (C2.1 a C2.3) las responde 10.10.30.10 con la
+dirección correcta, también desde la sucursal; el nombre inexistente (C2.4) devuelve
+Non-existent domain. "Server: [10.10.30.10]" y "UnKnown" aparecen porque no hay registro
+inverso (PTR) para el servidor; no afecta las pruebas. El ping por nombre (C3) resuelve
+a 10.10.30.10 con TTL=127 desde la central y TTL=126 desde la sucursal, igual que B2.3
+y B3.3. C4.4 (Invitados accede a la web interna) es un hallazgo para la auditoría,
+junto con HTTPS activado y los archivos de ejemplo de Packet Tracer en el servidor.

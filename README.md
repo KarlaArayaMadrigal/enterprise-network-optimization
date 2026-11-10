@@ -39,16 +39,17 @@ de IA.
 | Fase | Estado |
 |---|---|
 | 1. Diseño | Terminada |
-| 2. Red base (v1) | En curso |
-| 3. Auditoría de la v1 con Claude Code | Pendiente |
+| 2. Red base (v1) | Terminada |
+| 3. Auditoría de la v1 con Claude Code | Siguiente |
 | 4. Red optimizada (v2) y validación | Pendiente |
 | 5. Documentación final | Pendiente |
 
-**Fase 2:** routers y switches configurados, con vecindad OSPF FULL entre sedes. Ya están
-verificados el DHCP de las cuatro PCs y su conectividad con el gateway local
-(`tests/v1-dhcp-pcs.txt` y `tests/v1-ping.txt`). Faltan las pruebas entre VLANs, entre
-sedes y de gestión, además de los servicios DNS y web de SRV-TI. El plan de pruebas
-está en `docs/plan-pruebas-v1.md`.
+**Fase 2:** la red base está configurada y verificada según `docs/plan-pruebas-v1.md`:
+DHCP en las cuatro PCs (fase A), conectividad entre VLANs, entre sedes por OSPF y hacia
+la red de gestión (fase B), y servicios DNS y web en SRV-TI (fase C). La evidencia está
+en `tests/` y `evidence/`. Las pruebas confirman que la v1 funciona, pero también que no
+tiene controles de acceso: la red de Invitados llega a las redes internas y a la gestión.
+Esos hallazgos son el punto de partida de la auditoría (fase 3).
 
 ## Aviso sobre credenciales
 
