@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — siguiente.
+4. Red optimizada (v2) y validación — en curso (decisiones del grupo 1 tomadas).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -75,6 +75,7 @@ enterprise-network-optimization/
 | SRV-TI | Server-PT | Servidor DNS y web, IP fija |
 | PC-ADM, PC-VEN, PC-INV | PC-PT | PCs de prueba, sede central |
 | PC-SUC | PC-PT | PC de prueba, sucursal |
+| PC-TI | PC-PT | Estación de administración, VLAN 30, IP fija (v2) |
 
 ### Conexiones (cable directo de cobre)
 
@@ -85,6 +86,7 @@ enterprise-network-optimization/
 | SW-HQ-1 | Fa0/1 | SW-HQ-2 | Fa0/1 | Enlace entre switches 1 |
 | SW-HQ-1 | Fa0/2 | SW-HQ-2 | Fa0/2 | Enlace entre switches 2 |
 | SW-HQ-1 | Fa0/10 | SRV-TI | Fa0 | VLAN 30 |
+| SW-HQ-1 | Fa0/11 | PC-TI | Fa0 | VLAN 30 (v2) |
 | SW-HQ-2 | Fa0/10 | PC-ADM | Fa0 | VLAN 10 |
 | SW-HQ-2 | Fa0/11 | PC-VEN | Fa0 | VLAN 20 |
 | SW-HQ-2 | Fa0/12 | PC-INV | Fa0 | VLAN 40 |
@@ -114,6 +116,7 @@ Convención: el número de VLAN coincide con el tercer octeto de la red.
 | SW-HQ-1 (Vlan99) | 10.10.99.11/24, gateway 10.10.99.1 |
 | SW-HQ-2 (Vlan99) | 10.10.99.12/24, gateway 10.10.99.1 |
 | SW-SUC (Vlan99) | 10.20.99.11/24, gateway 10.20.99.1 |
+| PC-TI (v2) | 10.10.30.11/24, gateway 10.10.30.1, DNS 10.10.30.10 |
 
 ### DHCP
 
@@ -151,6 +154,42 @@ Cada router anuncia sus redes LAN y la red WAN 10.255.255.0/30.
 La v1 representa una red armada "con prisa" por una pyme: funciona, pero no aplica
 buenas prácticas. Es intencional y se corrige en la v2. No corrijas la v1 por tu
 cuenta; los hallazgos se documentan en la auditoría de la fase 3.
+
+## Decisiones de diseño de la v2
+
+Tomadas por Karla el 2026-11-11, a partir de la auditoría (`docs/auditoria-v1.md`).
+Detalle de las opciones en `docs/uso-de-ia.md`.
+
+### Grupo 1 (diseño y pruebas)
+
+- **Alcance (D1):** se corrigen los 21 hallazgos. IPv6 (DIS-01) es el último paso, y
+  solo cuando IPv4 esté validado.
+- **IPv6 (D2):** implementación completa según los prefijos del diseño, con ACLs IPv6
+  equivalentes a las de IPv4 (incluido el acceso a las VTY), para que no se pueda
+  saltar el aislamiento por IPv6. Las ACLs IPv6 deben permitir el descubrimiento de
+  vecinos y de routers. El método de asignación (SLAAC o DHCPv6 sin estado) y las IPv6
+  fijas de SRV-TI y PC-TI se deciden en ese paso.
+- **Administración (D3):** PC-TI, en la VLAN 30, es la estación de administración.
+- **Gestión (D4):** a las redes de gestión (VLAN 99 de ambas sedes) solo llegan la red
+  de TI (10.10.30.0/24) y los routers (incluida la red WAN 10.255.255.0/30 como
+  origen). Todo lo demás se bloquea. Riesgo aceptado: al permitir toda la red de TI,
+  si alguien compromete SRV-TI, llega a la gestión.
+- **Invitados (D5):** la VLAN 40 solo puede usar DHCP y ping (eco ICMP) hacia su
+  gateway (10.10.40.1) y DNS (UDP 53) hacia SRV-TI. Todo lo demás se bloquea,
+  incluida la sucursal.
+- **Tráfico interno (D6):** libre entre Administración, Ventas, TI y la sucursal.
+- **Pruebas (D7):** en la v2 son fallos esperados B2.5, B2.6, B3.7, B4.3, B4.4, B4.5 y
+  C4.4. Un éxito en cualquiera de ellas es un defecto. El resto de las fases A, B y C
+  debe seguir al 100 %. Pruebas nuevas: PC-TI llega a la gestión y entra por SSH;
+  Telnet falla (probado desde PC-TI, para que el fallo no se deba a una ACL);
+  Invitados obtiene IP por DHCP y resuelve DNS, pero no carga la web interna.
+- **Archivo de la v2 (D8):** `diagrams/horizonte-v2.pkt`, copia de la v1. La v1 se
+  conserva en la versión del cierre de la fase 2.
+
+### Grupo 2 (valores por defecto)
+
+Karla aceptó en principio los valores propuestos el 2026-11-11. Se revisan y registran
+después del grupo 1.
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 

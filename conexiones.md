@@ -17,11 +17,15 @@ PC 0: PC-ADM
 PC 1: PC-VEN
 PC 2: PC-INV
 PC 3: PC-SUC
+PC-TI (se agrega en la v2)
 
 Conexiones (cable directo de cobre):
 
 SRV-TI a SW-HQ-1:
 Puertos: Fa0 a Fa0/10
+
+PC-TI a SW-HQ-1 (v2):
+Puertos: Fa0 a Fa0/11
 
 R-HQ a SW-HQ-1:
 Puertos: G0/0/0 a G0/1
