@@ -173,10 +173,13 @@ Detalle de las opciones en `docs/uso-de-ia.md`.
 - **Gestión (D4):** a las redes de gestión (VLAN 99 de ambas sedes) solo llegan la red
   de TI (10.10.30.0/24) y los routers (incluida la red WAN 10.255.255.0/30 como
   origen). Todo lo demás se bloquea. Riesgo aceptado: al permitir toda la red de TI,
-  si alguien compromete SRV-TI, llega a la gestión.
-- **Invitados (D5):** la VLAN 40 solo puede usar DHCP y ping (eco ICMP) hacia su
-  gateway (10.10.40.1) y DNS (UDP 53) hacia SRV-TI. Todo lo demás se bloquea,
-  incluida la sucursal.
+  si alguien compromete SRV-TI, llega a la gestión. Consecuencia aceptada: la gestión
+  de una sede no llega a la de la otra (por ejemplo, SW-HQ-1 no llega a SW-SUC). Los
+  switches solo necesitan llegar a SRV-TI, para NTP y syslog, y ese tráfico no se
+  filtra.
+- **Invitados (D5):** la VLAN 40 solo puede usar DHCP (incluido el broadcast inicial),
+  ping (eco ICMP) hacia su gateway (10.10.40.1) y DNS (UDP 53) hacia SRV-TI. Todo lo
+  demás se bloquea, incluida la sucursal.
 - **Tráfico interno (D6):** libre entre Administración, Ventas, TI y la sucursal.
 - **Pruebas (D7):** en la v2 son fallos esperados B2.5, B2.6, B3.7, B4.3, B4.4, B4.5 y
   C4.4. Un éxito en cualquiera de ellas es un defecto. El resto de las fases A, B y C
@@ -186,10 +189,79 @@ Detalle de las opciones en `docs/uso-de-ia.md`.
 - **Archivo de la v2 (D8):** `diagrams/horizonte-v2.pkt`, copia de la v1. La v1 se
   conserva en la versión del cierre de la fase 2.
 
-### Grupo 2 (valores por defecto)
+### Grupo 2 (configuración)
 
-Karla aceptó en principio los valores propuestos el 2026-11-11. Se revisan y registran
-después del grupo 1.
+Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el grupo 1.
+
+**Acceso a los equipos**
+- **Credenciales (D9):** un usuario personal con privilegio 15 y `enable secret`
+  distinto en cada equipo, todas con hash (scrypt si Packet Tracer lo acepta; si no,
+  MD5) y `service password-encryption`. Contraseñas exclusivas del laboratorio. Las
+  configuraciones de `configurations/v2/` se exportan completas, sin omitir nada.
+  Política en `docs/credenciales-v2.md`.
+- **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, VTY 0-15
+  solo con SSH y `access-class` limitado a 10.10.30.0/24. En el paso de IPv6, el
+  equivalente IPv6 en las VTY.
+- **Consola (D11):** usuarios locales y 10 minutos de inactividad en la consola y en
+  las VTY.
+- **Banner (D12):** acceso restringido, sin nombre de la empresa, modelos ni IPs.
+
+**Switching**
+- **VLANs (D13):** nativa 999 (NATIVA) y sin uso 998 (SIN-USO), en los tres switches.
+- **Trunks (D14):** DTP desactivado y VLANs permitidas:
+  R-HQ↔SW-HQ-1: 10, 20, 30, 40, 99 y 999. SW-HQ-1↔SW-HQ-2: 10, 20, 40, 99 y 999.
+  R-SUC↔SW-SUC: 50, 99 y 999.
+- **EtherChannel (D15):** SW-HQ-1↔SW-HQ-2 (Fa0/1 y Fa0/2), LACP en modo activo en
+  ambos extremos, Port-channel 1.
+- **STP (D16):** Rapid PVST+ en los tres switches. SW-HQ-1 raíz principal y SW-HQ-2
+  secundaria en todas las VLANs de la central.
+- **Puertos de acceso (D17):** PortFast, BPDU Guard y port-security (1 MAC, sticky,
+  violación `shutdown`) en todos, incluido el de PC-TI (SW-HQ-1 Fa0/11).
+- **Puertos sin uso (D18):** apagados, en la VLAN 998, modo acceso, descripción
+  "SIN USO". SW-HQ-1 Fa0/11 ya no está sin uso.
+- **DHCP snooping (D19):** solo en los switches de acceso: SW-HQ-2 (VLANs 10, 20 y 40)
+  y SW-SUC (VLAN 50). El único puerto de confianza es el que va hacia el router
+  (Port-channel 1 en SW-HQ-2, Gi0/1 en SW-SUC). Opción 82 desactivada.
+- **CDP (D20):** desactivado en los puertos de usuarios (incluido PC-TI) y activo
+  entre equipos de red.
+
+**Enrutamiento**
+- **OSPF pasivo (D21):** todas las interfaces pasivas por defecto, salvo G0/0/1. Se
+  mantienen las sentencias `network`.
+- **Autenticación OSPF (D22):** MD5 en G0/0/1 de los dos routers.
+- **ACLs (D23):** extendidas con nombre.
+  - Invitados, de entrada en R-HQ G0/0/0.40: DHCP del cliente (UDP 68) al servidor
+    (UDP 67) con cualquier origen y destino, para incluir el Discover inicial (origen
+    0.0.0.0, destino 255.255.255.255); ping (eco ICMP) solo hacia 10.10.40.1; UDP 53
+    hacia 10.10.30.10. Todo lo demás se bloquea.
+  - Gestión, de salida en G0/0/0.99 de cada router: orígenes 10.10.30.0/24 y
+    10.255.255.0/30. Todo lo demás se bloquea.
+
+**Operación**
+- **NTP, syslog y marcas de tiempo (D24):** SRV-TI como servidor NTP y syslog de los
+  cinco equipos, nivel informativo, marcas de tiempo con milisegundos, zona UTC.
+- **Descripciones (D25):** formato `<tipo> a <equipo> <puerto>`, según `conexiones.md`.
+- **Búsqueda de nombres (D26):** desactivada en los cinco equipos.
+- **SRV-TI (D27):** solo DNS, HTTP, NTP y syslog activos. HTTPS y el resto apagados,
+  sin archivos de ejemplo.
+- **Orden (D28):** 1. PC-TI. 2. Configuración base y operación. 3. Capa 2. 4. STP y
+  EtherChannel. 5. DHCP snooping (repetir la fase A). 6. OSPF. 7. SSH (probar desde
+  PC-TI antes de quitar Telnet). 8. ACLs. 9. IPv6. Pruebas después de cada bloque.
+
+**Precauciones al aplicar**
+- VLAN nativa: cambiar los dos extremos de cada trunk seguidos (incidente 1).
+- EtherChannel: armarlo con Fa0/1 y Fa0/2 apagados.
+- OSPF: el pasivo por defecto y la autenticación cortan la vecindad hasta completar
+  los dos lados; verificarla al terminar.
+- DHCP snooping: la opción 82 y el snooping en switches encadenados pueden dejar sin
+  IP a las PCs.
+- ACL de Invitados: si la regla de DHCP se limita al gateway, el Discover inicial
+  (0.0.0.0 a 255.255.255.255) se bloquea y PC-INV no obtiene IP. Después de aplicarla,
+  liberar y renovar la IP de PC-INV y repetir la A3.
+- Port-security: si se cambia una PC, el puerto queda en err-disabled.
+
+**Por comprobar en Packet Tracer:** scrypt en las contraseñas, cliente NTP en el 2960,
+el Port-channel como puerto de confianza de DHCP snooping y SHA en OSPF (se usa MD5).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
