@@ -181,11 +181,14 @@ Detalle de las opciones en `docs/uso-de-ia.md`.
   ping (eco ICMP) hacia su gateway (10.10.40.1) y DNS (UDP 53) hacia SRV-TI. Todo lo
   demás se bloquea, incluida la sucursal.
 - **Tráfico interno (D6):** libre entre Administración, Ventas, TI y la sucursal.
-- **Pruebas (D7):** en la v2 son fallos esperados B2.5, B2.6, B3.7, B4.3, B4.4, B4.5 y
-  C4.4. Un éxito en cualquiera de ellas es un defecto. El resto de las fases A, B y C
-  debe seguir al 100 %. Pruebas nuevas: PC-TI llega a la gestión y entra por SSH;
-  Telnet falla (probado desde PC-TI, para que el fallo no se deba a una ACL);
-  Invitados obtiene IP por DHCP y resuelve DNS, pero no carga la web interna.
+- **Pruebas (D7):** en la v2 son fallos esperados B2.2, B2.5, B2.6, B3.7, B4.3, B4.4,
+  B4.5 y C4.4. Un éxito en cualquiera de ellas es un defecto. El resto de las fases A,
+  B y C debe seguir al 100 %. La B2.2 (PC-VEN hacia PC-INV) se agregó al preparar el
+  plan de aplicación: la respuesta de PC-INV se bloquea en la ACL de entrada de la .40,
+  así que Invitados queda aislado en los dos sentidos. Pruebas nuevas: PC-TI llega a la
+  gestión y entra por SSH; Telnet falla (probado desde PC-TI, para que el fallo no se
+  deba a una ACL); Invitados obtiene IP por DHCP y resuelve DNS, pero no carga la web
+  interna.
 - **Archivo de la v2 (D8):** `diagrams/horizonte-v2.pkt`, copia de la v1. La v1 se
   conserva en la versión del cierre de la fase 2.
 
@@ -199,9 +202,10 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   MD5) y `service password-encryption`. Contraseñas exclusivas del laboratorio. Las
   configuraciones de `configurations/v2/` se exportan completas, sin omitir nada.
   Política en `docs/credenciales-v2.md`.
-- **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, VTY 0-15
-  solo con SSH y `access-class` limitado a 10.10.30.0/24. En el paso de IPv6, el
-  equivalente IPv6 en las VTY.
+- **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, todas las
+  líneas VTY que tenga cada equipo (en la v1, 0 a 4 en los routers y 0 a 15 en los
+  switches) solo con SSH y `access-class` limitado a 10.10.30.0/24. En el paso de IPv6,
+  el equivalente IPv6 en las VTY.
 - **Consola (D11):** usuarios locales y 10 minutos de inactividad en la consola y en
   las VTY.
 - **Banner (D12):** acceso restringido, sin nombre de la empresa, modelos ni IPs.
