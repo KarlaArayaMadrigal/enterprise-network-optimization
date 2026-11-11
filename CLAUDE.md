@@ -271,6 +271,13 @@ el Port-channel como puerto de confianza de DHCP snooping, SHA en OSPF (se usa M
 si sube en `show access-lists` el contador de una ACL usada como `access-class` (si no
 sube, se documenta como limitación del simulador).
 
+## Estado de la v2
+
+Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
+
+- Bloque 1 (PC-TI): terminado y verificado (`tests/v2-bloque1-pc-ti.txt`).
+- Siguiente: bloque 2 (configuración base y operación).
+
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
 1. VLAN nativa distinta en los dos extremos de un trunk (SW-HQ-2 Fa0/1): STP bloqueó
