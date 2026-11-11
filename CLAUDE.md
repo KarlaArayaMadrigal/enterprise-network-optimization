@@ -204,8 +204,8 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   Política en `docs/credenciales-v2.md`.
 - **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, todas las
   líneas VTY que tenga cada equipo (en la v1, 0 a 4 en los routers y 0 a 15 en los
-  switches) solo con SSH y `access-class` limitado a 10.10.30.0/24. En el paso de IPv6,
-  el equivalente IPv6 en las VTY.
+  switches) solo con SSH y `access-class` limitado a 10.10.30.0/24, con un deny final
+  explícito en esa ACL. En el paso de IPv6, el equivalente IPv6 en las VTY.
 - **Consola (D11):** usuarios locales y 10 minutos de inactividad en la consola y en
   las VTY.
 - **Banner (D12):** acceso restringido, sin nombre de la empresa, modelos ni IPs.
@@ -237,9 +237,11 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   - Invitados, de entrada en R-HQ G0/0/0.40: DHCP del cliente (UDP 68) al servidor
     (UDP 67) con cualquier origen y destino, para incluir el Discover inicial (origen
     0.0.0.0, destino 255.255.255.255); ping (eco ICMP) solo hacia 10.10.40.1; UDP 53
-    hacia 10.10.30.10. Todo lo demás se bloquea.
+    hacia 10.10.30.10. Termina con un deny final explícito (para que el bloqueo tenga
+    contador).
   - Gestión, de salida en G0/0/0.99 de cada router: orígenes 10.10.30.0/24 y
-    10.255.255.0/30. Todo lo demás se bloquea.
+    10.255.255.0/30. Termina con un deny final explícito (para que el bloqueo tenga
+    contador).
 
 **Operación**
 - **NTP, syslog y marcas de tiempo (D24):** SRV-TI como servidor NTP y syslog de los
@@ -265,7 +267,9 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
 - Port-security: si se cambia una PC, el puerto queda en err-disabled.
 
 **Por comprobar en Packet Tracer:** scrypt en las contraseñas, cliente NTP en el 2960,
-el Port-channel como puerto de confianza de DHCP snooping y SHA en OSPF (se usa MD5).
+el Port-channel como puerto de confianza de DHCP snooping, SHA en OSPF (se usa MD5) y
+si sube en `show access-lists` el contador de una ACL usada como `access-class` (si no
+sube, se documenta como limitación del simulador).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 

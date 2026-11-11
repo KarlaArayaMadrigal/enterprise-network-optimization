@@ -317,8 +317,13 @@ quitar el pasivo por defecto.
      `docs/credenciales-v2.md`.
 4. **Probar SSH desde PC-TI.** Cuando funcione:
    - Dejar las VTY solo con SSH.
-   - Crear una ACL estándar que permita 10.10.30.0/24.
+   - Crear una ACL estándar que permita 10.10.30.0/24 y termine con un **deny final
+     explícito** (obligatorio, para que la D3.1 de `docs/plan-pruebas-v2.md` tenga
+     contador).
    - Aplicarla como `access-class` de entrada en las VTY.
+   - Por comprobar en Packet Tracer: si el contador de una ACL usada como
+     `access-class` sube en `show access-lists`. Si no sube, se documenta como
+     limitación del simulador.
 5. **Consola, al final y solo después de entrar por SSH con el usuario** (lo que
    confirma que la contraseña funciona): autenticación con usuarios locales y 10
    minutos de inactividad. **No guardar la configuración hasta salir de la consola y
@@ -346,6 +351,7 @@ quitar el pasivo por defecto.
 | `show ssh`, con la sesión abierta | La sesión de PC-TI con la versión 2.0 |
 | PC-TI: Telnet a los mismos equipos | Rechazado. Prueba nueva de la D7 |
 | PC-ADM: SSH a 10.10.99.12 | Rechazado por la `access-class`. Todavía no hay ACLs: el paquete llega, pero el equipo rechaza la conexión |
+| `show access-lists` en SW-HQ-2, antes y después del SSH desde PC-ADM | Sube el contador del deny final de la ACL de las VTY. Si no sube, anotarlo como limitación del simulador |
 | `show line` y `show running-config` | Sin `enable password`, sin contraseñas de línea, secrets con hash, todas las líneas VTY que existan configuradas igual y con `access-class` |
 | Salir de la consola y volver a entrar | Pide usuario y contraseña |
 | Copiar `show ip ssh` y las sesiones a `tests/` | Evidencia de SEC-01 a SEC-04 e INFO-01 |
@@ -369,16 +375,17 @@ En cada caso, primero se escribe la ACL completa y **después** se aplica a la i
 **Qué configurar**
 1. **Gestión (R-SUC y R-HQ):**
    - ACL extendida con nombre que permita los orígenes 10.10.30.0/24 y 10.255.255.0/30
-     hacia cualquier destino. El resto queda bloqueado por el deny implícito; si se
-     quiere que el bloqueo sume coincidencias en el contador, agregar un deny final
-     explícito.
+     hacia cualquier destino y termine con un **deny final explícito** de todo lo demás
+     (obligatorio). El deny implícito no tiene contador en `show access-lists`, y los
+     fallos esperados de `docs/plan-pruebas-v2.md` se comprueban con el contador de esa
+     línea.
    - Aplicarla **de salida** en G0/0/0.99.
 2. **Invitados (R-HQ):** ACL extendida con nombre, en este orden:
    1. DHCP del cliente (UDP 68) al servidor (UDP 67), con cualquier origen y destino,
       para que pase el Discover inicial de 0.0.0.0 a 255.255.255.255.
    2. Eco ICMP solo hacia 10.10.40.1.
    3. UDP 53 solo hacia 10.10.30.10.
-   4. Todo lo demás bloqueado.
+   4. Deny final explícito de todo lo demás (obligatorio, por el mismo motivo).
 
    Aplicarla **de entrada** en G0/0/0.40.
 
@@ -398,7 +405,7 @@ En cada caso, primero se escribe la ACL completa y **después** se aplica a la i
 | Prueba | Resultado esperado |
 |---|---|
 | `show ip interface G0/0/0.99` y `show ip interface G0/0/0.40` | "Outgoing access list is …" en la .99 e "Inbound access list is …" en la .40 |
-| `show access-lists` después de las pruebas | Los contadores de coincidencias suben en las líneas que corresponden. Es la mejor evidencia de que la ACL actúa |
+| `show access-lists` antes y después de las pruebas | En cada fallo esperado sube el contador del deny final explícito; en las pruebas permitidas suben los de las líneas permit (DHCP, eco y DNS en Invitados; orígenes de TI y WAN en gestión). Es la mejor evidencia de que la ACL actúa |
 | Después de la ACL de R-SUC: B4.2 (R-SUC → SW-SUC) y PC-TI → 10.20.99.11 por ping y SSH | Éxito |
 | Después de la ACL de R-SUC: B4.3 (PC-ADM → 10.20.99.11) | **Falla** |
 | Después de la ACL de R-SUC: **NTP y syslog de SW-SUC** (`show ntp status` en SW-SUC; generar un mensaje en SW-SUC y buscarlo en SYSLOG de SRV-TI) | Sigue sincronizado con 10.10.30.10 y el mensaje llega. Si NTP falla, falta permitir la red de TI en la ACL. Si falla syslog, la ACL quedó aplicada en la dirección equivocada |
