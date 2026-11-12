@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (decisiones del grupo 1 tomadas).
+4. Red optimizada (v2) y validación — en curso (bloques 1 y 2 de la v2 terminados).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -266,8 +266,7 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   liberar y renovar la IP de PC-INV y repetir la A3.
 - Port-security: si se cambia una PC, el puerto queda en err-disabled.
 
-**Por comprobar en Packet Tracer:** scrypt en las contraseñas, cliente NTP en el 2960,
-el Port-channel como puerto de confianza de DHCP snooping, SHA en OSPF (se usa MD5) y
+**Por comprobar en Packet Tracer:** scrypt en las contraseñas, el Port-channel como puerto de confianza de DHCP snooping, SHA en OSPF (se usa MD5) y
 si sube en `show access-lists` el contador de una ACL usada como `access-class` (si no
 sube, se documenta como limitación del simulador).
 
@@ -276,7 +275,18 @@ sube, se documenta como limitación del simulador).
 Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
 
 - Bloque 1 (PC-TI): terminado y verificado (`tests/v2-bloque1-pc-ti.txt`).
-- Siguiente: bloque 2 (configuración base y operación).
+- Bloque 2 (configuración base y operación): terminado y verificado
+  (`tests/v2-bloque2-config-base.txt`).
+- Limitación de Packet Tracer (bloque 2): `logging trap` solo ofrece `debugging` (nivel 7)
+  en los ISR4331 y en los 2960; `informational` da error. Los cinco equipos quedan en
+  nivel 7, que incluye el informativo. Diferencia con la D24.
+- Limitación de Packet Tracer (bloque 2): en los ISR4331 no existe
+  `show interfaces description`. Las descripciones de los routers se verifican con
+  `show running-config | include interface|description`.
+- NTP en Packet Tracer (bloque 2): el 2960 funciona como cliente NTP. La sincronización
+  se pierde y se recupera sola, sin cambios de configuración; comprobar
+  `show ntp associations` antes de usar la hora como evidencia.
+- Siguiente: bloque 3 (capa 2: VLANs, trunks y puertos).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
@@ -288,3 +298,9 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
 4. Router-on-a-stick con la interfaz física apagada y una subinterfaz en
    `administratively down` (R-HQ y R-SUC). Resuelto con `no shutdown`.
 5. Red WAN sin anunciar en OSPF en R-HQ. Resuelto agregando el `network` de la /30.
+6. Configuración de un router aplicada en el otro (v2, bloque 2): al pegar en R-SUC las
+   descripciones de R-HQ se crearon las subinterfaces .10, .20, .30 y .40. Resuelto
+   eliminándolas con `no interface` y escribiendo las descripciones de R-SUC. Los mismos
+   comandos se pegaron en SW-HQ-1, que los rechazó todos porque no tiene esas
+   interfaces, así que no hubo cambios. El mismo error fue inofensivo en el switch y
+   peligroso en el router, donde los comandos se aceptaron y crearon subinterfaces.

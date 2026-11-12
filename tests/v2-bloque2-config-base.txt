@@ -1,0 +1,1128 @@
+Proyecto de portafolio. Comercial Horizonte S.A. es una empresa ficticia y la red es una
+simulación en Cisco Packet Tracer.
+
+Bloque 2 del plan de aplicación de la v2 (docs/plan-v2.md): configuración base y operación
+(D12, D24, D25, D26 y D27)
+Archivo: diagrams/horizonte-v2.pkt
+Salidas obtenidas por Karla en Packet Tracer (CLI de los cinco equipos IOS, Desktop de
+PC-ADM y pestaña Services de SRV-TI) y transcritas tal como las entregó. La única
+excepción es show version (sección 9), del que se transcribe solo un extracto.
+
+Fecha de trabajo: 2026-11-11. Los equipos muestran la hora en UTC (D24), que ya era el
+12 de noviembre: por eso las salidas dicen "Thu Nov 12 2026".
+
+############################################################
+Configuración — 2026-11-11
+############################################################
+
+1. SRV-TI (pestaña Services)
+   - Servicios activos antes del cambio: HTTP, HTTPS, TFTP, DNS, SYSLOG, NTP, EMAIL
+     (SMTP y POP3), FTP y VM Management. NTP y SYSLOG ya estaban activos en la v1,
+     pero ningún equipo los usaba.
+   - Se apagan: HTTPS, TFTP, SMTP, POP3, FTP y VM Management.
+   - Quedan activos: DNS, HTTP, NTP y SYSLOG (D27).
+   - Archivos de ejemplo de HTTP borrados. Queda solo index.html.
+
+2. Cinco equipos IOS (R-HQ, R-SUC, SW-HQ-1, SW-HQ-2, SW-SUC)
+   - Marcas de tiempo con fecha, hora y milisegundos en log y debug.
+   - Servidor NTP 10.10.30.10.
+   - Logs a 10.10.30.10. Nivel: debugging (ver la limitación en las observaciones).
+   - Banner de acceso restringido (D12).
+
+3. Solo SW-HQ-1: búsqueda de nombres desactivada (OP-03).
+
+4. Descripciones (D25) en todas las interfaces en uso, con el formato
+   <tipo> a <equipo> <puerto>, y en las subinterfaces y Vlan99.
+
+5. Configuración guardada en los cinco equipos (copy running-config startup-config,
+   los cinco respondieron [OK]) y .pkt guardado.
+
+############################################################
+Verificación — 2026-11-11
+############################################################
+
+=== 1. Configuración aplicada (los cinco equipos) ===
+
+R-HQ#show running-config | include timestamps|ntp|logging|banner
+service timestamps log datetime msec
+service timestamps debug datetime msec
+banner motd ^C  Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+ntp server 10.10.30.10
+R-HQ#
+
+R-SUC#show running-config | include timestamps|ntp|logging|banner
+service timestamps log datetime msec
+service timestamps debug datetime msec
+banner motd ^C Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+ntp server 10.10.30.10
+R-SUC#
+
+SW-HQ-1#show running-config | include domain|timestamps|ntp|logging|banner
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no ip domain-lookup
+banner motd ^C Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+ntp server 10.10.30.10
+SW-HQ-1#
+
+SW-HQ-2#show running-config | include timestamps|ntp|logging|banner
+service timestamps log datetime msec
+service timestamps debug datetime msec
+banner motd ^C Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+ntp server 10.10.30.10
+
+SW-SUC#show running-config | include timestamps|ntp|logging|banner
+service timestamps log datetime msec
+service timestamps debug datetime msec
+banner motd ^C Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+ntp server 10.10.30.10
+SW-SUC#copy run
+SW-SUC#copy running-config star
+SW-SUC#copy running-config startup-config
+Destination filename [startup-config]?
+Building configuration...
+[OK]
+SW-SUC#
+
+Captura del banner: evidence/v2-bloque2-banner-r-hq.png
+
+=== 2. Nivel de logging: limitación de Packet Tracer ===
+
+R-HQ(config)#logging trap ?
+  debugging  Debugging messages                (severity=7)
+  <cr>
+R-HQ(config)#logging trap
+
+SW-HQ-1(config)#logging trap ?
+  debugging  Debugging messages                (severity=7)
+  <cr>
+SW-HQ-1(config)#logging trap
+
+R-HQ(config)#logging trap informational
+                          ^
+% Invalid input detected at '^' marker.
+
+R-HQ(config)#
+
+=== 3. show ntp status y show clock (primera ronda) ===
+
+SW-SUC#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE717273.0000011C (1:37:55.284 UTC Thu Nov 12 2026)
+clock offset is 2.00 msec, root delay is 0.00  msec
+root dispersion is 10.84 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 9 sec ago.
+SW-SUC#show clock
+1:38:6.83 UTC Thu Nov 12 2026
+
+R-SUC#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE7172B9.0000020E (1:39:5.526 UTC Thu Nov 12 2026)
+clock offset is 0.00 msec, root delay is 1.00  msec
+root dispersion is 10.95 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 4 sec ago.
+R-SUC#show clock
+1:39:10.16 UTC Thu Nov 12 2026
+R-SUC#
+
+R-HQ#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE7172D4.0000026A (1:39:32.618 UTC Thu Nov 12 2026)
+clock offset is 0.00 msec, root delay is 0.00  msec
+root dispersion is 10.39 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 7 sec ago.
+R-HQ#show clock
+1:39:40.149 UTC Thu Nov 12 2026
+
+SW-HQ-1#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE7173EA.0000028F (1:44:10.655 UTC Thu Nov 12 2026)
+clock offset is 3.00 msec, root delay is 0.00  msec
+root dispersion is 10.69 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 10 sec ago.
+SW-HQ-1#show clock
+1:44:21.232 UTC Thu Nov 12 2026
+SW-HQ-1#
+
+SW-HQ-2#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE71733F.00000053 (1:41:19.083 UTC Thu Nov 12 2026)
+clock offset is 2.00 msec, root delay is 0.00  msec
+root dispersion is 10.06 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 2 sec ago.
+SW-HQ-2#show clock
+1:41:21.750 UTC Thu Nov 12 2026
+SW-HQ-2#
+
+=== 4. Hora de SRV-TI comparada con un equipo IOS ===
+
+Captura de la pestaña NTP de SRV-TI tomada casi al mismo tiempo que este show clock:
+evidence/v2-bloque2-srv-ti-ntp.png (SRV-TI: 01:48:50 a. m., 12 de noviembre de 2026).
+
+R-HQ#show clock
+1:49:5.660 UTC Thu Nov 12 2026
+R-HQ#
+
+=== 5. show ntp associations y show logging (los cinco equipos) ===
+
+R-HQ#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+ ~10.10.30.10   .INIT.          16   -        64      0      0.00           0.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-HQ#show logging
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 14 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 14 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 14 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             3 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.20, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.20, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.30, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.30, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.40, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.40, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.99, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.99, changed state to up
+
+18:56:43: %OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+18:56:43: %OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+*Mar 01, 19:13:17.1313: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 19:13:17.1313: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 19:16:08.1616: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 19:16:08.1616: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 11, 23:49:48.4949: %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 stopped - CLI initiated
+
+*Nov 11, 23:49:48.4949: %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 stopped - CLI initiated
+
+*Nov 11, 23:54:39.5454: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 11, 23:54:39.5454: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 11, 23:54:39.5454:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 11, 23:54:39.5454:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:33:02.3333: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 12, 01:33:02.3333: SYS-5-CONFIG_I: Configured from console by console
+R-HQ#
+
+
+SW-HQ-1#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    5        16      377    10.00          -2.00             0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-HQ-1#show logging
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 16 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 16 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 16 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             3 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINK-3-UPDOWN: Interface Vlan99, changed state to down
+
+%LINK-5-CHANGED: Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/2, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/10, changed state to up
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/11, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/11, changed state to up
+
+*Mar 01, 20:40:00.4040: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:40:00.4040:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:34:02.3434: SYS-5-CONFIG_I: Configured from console by console
+SW-HQ-1#
+
+
+SW-HQ-2#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    5        16      377    11.00          -3.00             0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-HQ-2#show logging
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 16 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 16 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 16 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             3 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINK-3-UPDOWN: Interface Vlan99, changed state to down
+
+%LINK-5-CHANGED: Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/2, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/10, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/11, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/11, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/12, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/12, changed state to up
+
+*Mar 01, 20:42:05.4242: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:42:05.4242:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:34:37.3434: SYS-5-CONFIG_I: Configured from console by console
+SW-HQ-2#
+
+
+R-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    14       16      377    13.00          7.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-SUC#show logging
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 8 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 8 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 8 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             3 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.50, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.50, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.99, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0/0.99, changed state to up
+
+18:56:41: %OSPF-5-ADJCHG: Process 1, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+18:56:41: %OSPF-5-ADJCHG: Process 1, Nbr 1.1.1.1 on GigabitEthernet0/0/1 from LOADING to FULL, Loading Done
+
+*Mar 01, 20:06:40.066: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:06:40.066: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:06:40.066:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Mar 01, 20:06:40.066:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:34:47.3434: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 12, 01:34:47.3434: SYS-5-CONFIG_I: Configured from console by console
+R-SUC#
+
+SW-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+ ~10.10.30.10   .INIT.          16   -        64      0      0.00           0.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-SUC#show logging
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 11 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 11 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 11 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             4 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINK-3-UPDOWN: Interface Vlan99, changed state to down
+
+%LINK-5-CHANGED: Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/10, changed state to up
+
+*Mar 01, 20:43:47.4343: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:43:47.4343:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:35:01.3535: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 12, 01:38:00.3838: SYS-5-CONFIG_I: Configured from console by console
+SW-SUC#
+
+=== 6. Mensajes recibidos en SRV-TI (pestaña SYSLOG) ===
+
+Captura: evidence/v2-bloque2-srv-ti-syslog.png
+Packet Tracer muestra la IP de origen en la columna HostName. Mensajes generados después
+de la sincronización NTP (filas 11 a 15 de la captura), uno por equipo:
+
+| Fila | Origen | Equipo | Hora (UTC, 12 nov 2026) |
+|---|---|---|---|
+| 11 | 10.10.30.1 | R-HQ | 01:33:02.135 |
+| 12 | 10.10.99.11 | SW-HQ-1 | 01:34:02.361 |
+| 13 | 10.10.99.12 | SW-HQ-2 | 01:34:37.386 |
+| 14 | 10.255.255.2 | R-SUC | 01:34:47.163 |
+| 15 | 10.20.99.11 | SW-SUC | 01:35:01.528 |
+
+=== 7. El "*" de los mensajes con el reloj sincronizado (SW-HQ-1) ===
+
+Mensaje generado entrando y saliendo del modo de configuración, y asociación NTP
+consultada a continuación.
+
+SW-HQ-1#show log
+Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,
+          0 flushes, 0 overruns, xml disabled, filtering disabled)
+
+No Active Message Discriminator.
+
+
+No Inactive Message Discriminator.
+
+
+    Console logging: level debugging, 17 messages logged, xml disabled,
+          filtering disabled
+    Monitor logging: level debugging, 17 messages logged, xml disabled,
+          filtering disabled
+    Buffer logging:  level debugging, 0 messages logged, xml disabled,
+          filtering disabled
+
+    Logging Exception size (4096 bytes)
+    Count and timestamp logging messages: disabled
+    Persistent logging: disabled
+
+No active filter modules.
+
+ESM: 0 messages dropped
+    Trap logging: level debugging, 17 message lines logged
+        Logging to 10.10.30.10  (udp port 514,  audit disabled,
+             authentication disabled, encryption disabled, link up),
+             4 message lines logged,
+             0 message lines rate-limited,
+             0 message lines dropped-by-MD,
+             xml disabled, sequence number disabled
+             filtering disabled
+
+Log Buffer (4096 bytes):
+
+
+%LINK-3-UPDOWN: Interface Vlan99, changed state to down
+
+%LINK-5-CHANGED: Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/2, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/10, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/10, changed state to up
+
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+%LINK-5-CHANGED: Interface FastEthernet0/11, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/11, changed state to up
+
+*Mar 01, 20:40:00.4040: SYS-5-CONFIG_I: Configured from console by console
+
+*Mar 01, 20:40:00.4040:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+
+*Nov 12, 01:34:02.3434: SYS-5-CONFIG_I: Configured from console by console
+
+*Nov 12, 02:02:53.022: SYS-5-CONFIG_I: Configured from console by console
+SW-HQ-1#
+
+SW-HQ-1#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    16       16      377    0.00           1.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-HQ-1#
+
+=== 8. Pérdida de sincronización en R-HQ y SW-SUC (hacia las 2:10 UTC) ===
+
+R-HQ#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+ ~10.10.30.10   .INIT.          16   -        64      0      0.00           0.00              0.48
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-HQ#show ntp status
+Clock is unsynchronized, stratum 16, no reference clock
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is 00000000.00000000 (00:00:00.000 UTC Mon Jan 1 1990)
+clock offset is 0.00 msec, root delay is 0.00  msec
+root dispersion is 0.00 msec, peer dispersion is 0.00 msec.
+loopfilter state is 'FSET' (Drift set from file), drift is - 0.000001193 s/s system poll interval is 4, never updated.
+R-HQ#
+
+SW-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+ ~10.10.30.10   .INIT.          16   -        64      0      0.00           0.00              0.48
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-SUC#show ntp status
+Clock is unsynchronized, stratum 16, no reference clock
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is 00000000.00000000 (00:00:00.000 UTC Mon Jan 1 1990)
+clock offset is 0.00 msec, root delay is 0.00  msec
+root dispersion is 0.00 msec, peer dispersion is 0.00 msec.
+loopfilter state is 'FSET' (Drift set from file), drift is - 0.000001193 s/s system poll interval is 4, never updated.
+SW-SUC#
+
+=== 9. Diagnóstico de la pérdida de sincronización ===
+
+show version (extracto: solo las líneas de uptime y motivo del último reinicio).
+
+R-HQ#show version
+...
+Router uptime is 2 hours, 43 minutes, 38 seconds
+Uptime for this control processor is 2 hours, 43 minutes, 38 seconds
+System returned to ROM by power-on
+...
+Last reload reason: PowerOn
+...
+
+SW-SUC#show version
+...
+Switch uptime is 39 minutes
+System returned to ROM by power-on
+...
+Last reset from power-on
+...
+
+R-HQ#show clock
+2:11:15.215 UTC Thu Nov 12 2026
+R-HQ#
+R-HQ#show running-config | include ntp
+ntp server 10.10.30.10
+R-HQ#ping 10.10.30.10
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.30.10, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+R-HQ#
+
+SW-SUC#show clock
+2:11:21.88 UTC Thu Nov 12 2026
+SW-SUC#show running-config | include ntp
+ntp server 10.10.30.10
+SW-SUC#ping 10.10.30.10
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.30.10, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+SW-SUC#
+
+=== 10. Recuperación sin intervención (SW-SUC y R-HQ) ===
+
+R-HQ#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+ ~10.10.30.10   .INIT.          16   -        64      0      0.00           0.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-HQ#
+
+SW-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    4        16      377    0.00           0.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-SUC#
+
+SW-SUC#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE717BAD.000002CB (2:17:17.715 UTC Thu Nov 12 2026)
+clock offset is 0.00 msec, root delay is 0.00  msec
+root dispersion is 10.62 msec, peer dispersion is 0.12 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 4, last update was 15 sec ago.
+SW-SUC#
+
+R-HQ, después de esperar unos minutos sin cambiar nada:
+
+R-HQ#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    26       64      1      1.00           0.00              0.00
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-HQ#show ntp status
+Clock is synchronized, stratum 2, reference is 10.10.30.10
+nominal freq is 250.0000 Hz, actual freq is 249.9990 Hz, precision is 2**24
+reference time is EE717BDD.00000375 (2:18:5.885 UTC Thu Nov 12 2026)
+clock offset is 0.00 msec, root delay is 1.00  msec
+root dispersion is 10.36 msec, peer dispersion is 0.00 msec.
+loopfilter state is 'CTRL' (Normal Controlled Loop), drift is - 0.000001193 s/s system poll interval is 6, last update was 28 sec ago.
+R-HQ#
+
+=== 11. Descripciones (D25) ===
+
+R-HQ#show running-config | include interface|description
+interface GigabitEthernet0/0/0
+ description TRUNK a SW-HQ-1 G0/1
+interface GigabitEthernet0/0/0.10
+ description VLAN 10 ADMINISTRACION
+interface GigabitEthernet0/0/0.20
+ description VLAN 20 VENTAS
+interface GigabitEthernet0/0/0.30
+ description VLAN 30 TI
+interface GigabitEthernet0/0/0.40
+ description VLAN 40 INVITADOS
+interface GigabitEthernet0/0/0.99
+ description VLAN 99 GESTION
+interface GigabitEthernet0/0/1
+ description WAN a R-SUC G0/0/1
+interface GigabitEthernet0/0/2
+R-HQ#
+
+R-SUC, antes de la corrección (incidente 6: se aplicó en R-SUC el bloque de
+descripciones de R-HQ y se crearon las subinterfaces .10, .20, .30 y .40):
+
+R-SUC#show running-config | include interface|description
+interface GigabitEthernet0/0/0
+ description TRUNK a SW-HQ-1 G0/1
+interface GigabitEthernet0/0/0.10
+ description VLAN 10 ADMINISTRACION
+interface GigabitEthernet0/0/0.20
+ description VLAN 20 VENTAS
+interface GigabitEthernet0/0/0.30
+ description VLAN 30 TI
+interface GigabitEthernet0/0/0.40
+ description VLAN 40 INVITADOS
+interface GigabitEthernet0/0/0.50
+interface GigabitEthernet0/0/0.99
+ description VLAN 99 GESTION
+interface GigabitEthernet0/0/1
+ description WAN a R-SUC G0/0/1
+interface GigabitEthernet0/0/2
+R-SUC#
+
+Corrección: las cuatro subinterfaces se eliminaron con "no interface" y se escribieron
+las descripciones correctas de R-SUC.
+
+R-SUC, después de la corrección:
+
+R-SUC#show running-config | include interface|description
+interface GigabitEthernet0/0/0
+ description TRUNK a SW-SUC G0/1
+interface GigabitEthernet0/0/0.50
+ description VLAN 50 VENTAS-SUCURSAL
+interface GigabitEthernet0/0/0.99
+ description VLAN 99 GESTION
+interface GigabitEthernet0/0/1
+ description WAN a R-HQ G0/0/1
+interface GigabitEthernet0/0/2
+
+R-SUC#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   unassigned      YES unset  up                    up
+GigabitEthernet0/0/0.5010.20.50.1      YES manual up                    up
+GigabitEthernet0/0/0.9910.20.99.1      YES manual up                    up
+GigabitEthernet0/0/1   10.255.255.2    YES manual up                    up
+GigabitEthernet0/0/2   unassigned      YES unset  administratively down down
+R-SUC#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           1   FULL/BDR        00:00:38    10.255.255.1    GigabitEthernet0/0/1
+R-SUC#ping 10.10.30.10
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.30.10, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R-SUC#
+
+SW-HQ-1#show running-config | include interface|description
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-2 Fa0/1
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-2 Fa0/2
+interface FastEthernet0/3
+interface FastEthernet0/4
+interface FastEthernet0/5
+interface FastEthernet0/6
+interface FastEthernet0/7
+interface FastEthernet0/8
+interface FastEthernet0/9
+interface FastEthernet0/10
+ description ACCESO a SRV-TI Fa0
+interface FastEthernet0/11
+ description ACCESO a PC-TI Fa0
+interface FastEthernet0/12
+interface FastEthernet0/13
+interface FastEthernet0/14
+interface FastEthernet0/15
+interface FastEthernet0/16
+interface FastEthernet0/17
+interface FastEthernet0/18
+interface FastEthernet0/19
+interface FastEthernet0/20
+interface FastEthernet0/21
+interface FastEthernet0/22
+interface FastEthernet0/23
+interface FastEthernet0/24
+interface GigabitEthernet0/1
+ description TRUNK a R-HQ G0/0/0
+interface GigabitEthernet0/2
+interface Vlan1
+interface Vlan99
+ description GESTION
+SW-HQ-1#
+
+SW-HQ-2#show running-config | include interface|description
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-1 Fa0/1
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-1 Fa0/2
+interface FastEthernet0/3
+interface FastEthernet0/4
+interface FastEthernet0/5
+interface FastEthernet0/6
+interface FastEthernet0/7
+interface FastEthernet0/8
+interface FastEthernet0/9
+interface FastEthernet0/10
+ description ACCESO a PC-ADM Fa0
+interface FastEthernet0/11
+ description ACCESO a PC-VEN Fa0
+interface FastEthernet0/12
+ description ACCESO a PC-INV Fa0
+interface FastEthernet0/13
+interface FastEthernet0/14
+interface FastEthernet0/15
+interface FastEthernet0/16
+interface FastEthernet0/17
+interface FastEthernet0/18
+interface FastEthernet0/19
+interface FastEthernet0/20
+interface FastEthernet0/21
+interface FastEthernet0/22
+interface FastEthernet0/23
+interface FastEthernet0/24
+interface GigabitEthernet0/1
+interface GigabitEthernet0/2
+interface Vlan1
+interface Vlan99
+ description GESTION
+SW-HQ-2#
+
+SW-SUC#show running-config | include interface|description
+interface FastEthernet0/1
+interface FastEthernet0/2
+interface FastEthernet0/3
+interface FastEthernet0/4
+interface FastEthernet0/5
+interface FastEthernet0/6
+interface FastEthernet0/7
+interface FastEthernet0/8
+interface FastEthernet0/9
+interface FastEthernet0/10
+ description ACCESO a PC-SUC Fa0
+interface FastEthernet0/11
+interface FastEthernet0/12
+interface FastEthernet0/13
+interface FastEthernet0/14
+interface FastEthernet0/15
+interface FastEthernet0/16
+interface FastEthernet0/17
+interface FastEthernet0/18
+interface FastEthernet0/19
+interface FastEthernet0/20
+interface FastEthernet0/21
+interface FastEthernet0/22
+interface FastEthernet0/23
+interface FastEthernet0/24
+interface GigabitEthernet0/1
+ description TRUNK a R-SUC G0/0/0
+interface GigabitEthernet0/2
+interface Vlan1
+interface Vlan99
+ description GESTION
+SW-SUC#
+
+R-HQ# show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   unassigned      YES unset  up                    up
+GigabitEthernet0/0/0.1010.10.10.1      YES manual up                    up
+GigabitEthernet0/0/0.2010.10.20.1      YES manual up                    up
+GigabitEthernet0/0/0.3010.10.30.1      YES manual up                    up
+GigabitEthernet0/0/0.4010.10.40.1      YES manual up                    up
+GigabitEthernet0/0/0.9910.10.99.1      YES manual up                    up
+GigabitEthernet0/0/1   10.255.255.1    YES manual up                    up
+GigabitEthernet0/0/2   unassigned      YES unset  administratively down down
+R-HQ#
+
+=== 12. DNS y HTTP siguen activos (C1.1, C2.1 y C4.1, desde PC-ADM) ===
+
+C1.1 (Web Browser -> http://10.10.30.10): evidence/v2-bloque2-c1-web-por-ip.png
+C4.1 (Web Browser -> http://www.horizonte.internal): evidence/v2-bloque2-c4-web-por-nombre.png
+
+C2.1:
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+C:\>
+
+=== 13. SRV-TI: HTTP (evidencia de OP-04) ===
+
+Captura: evidence/v2-bloque2-srv-ti-http.png
+HTTP encendido, HTTPS apagado. En el administrador de archivos queda solo index.html.
+
+=== 14. Ronda final de show ntp associations (los cinco equipos) ===
+
+R-HQ#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    3        16      377    0.00           1.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-HQ#
+
+R-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    15       16      377    0.00           3.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+R-SUC#
+
+SW-HQ-1#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    1        16      377    11.00          -1.00             0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-HQ-1#
+
+
+SW-HQ-2#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    2        16      377    11.00          -4.00             0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-HQ-2#
+
+
+SW-SUC#show ntp associations
+
+address         ref clock       st   when     poll    reach  delay          offset            disp
+*~10.10.30.10   127.127.1.1     1    11       16      377    0.00           1.00              0.12
+ * sys.peer, # selected, + candidate, - outlyer, x falseticker, ~ configured
+SW-SUC#
+
+############################################################
+Resumen
+############################################################
+
+Las verificaciones del bloque 2 dan el resultado esperado (docs/plan-v2.md), con una
+diferencia en el nivel de logging por una limitación del simulador:
+
+| Prueba | Esperado | Obtenido |
+|---|---|---|
+| show ntp status / associations | Sincronizado con 10.10.30.10 | OK en los cinco (ronda final: *~, reach 377). Pérdida intermitente en R-HQ y SW-SUC, recuperada sola (observaciones) |
+| show clock | La hora de SRV-TI | OK: R-HQ 1:49:05 UTC y SRV-TI 01:48:50 en la captura tomada casi al mismo tiempo |
+| show logging | Logging hacia 10.10.30.10 y marcas de tiempo | OK en los cinco. Nivel debugging en vez de informativo (limitación) |
+| Mensajes en SRV-TI > SYSLOG | Uno de cada equipo, con hora | OK: filas 11 a 15, los cinco equipos |
+| Descripciones | En todas las interfaces en uso | OK en los cinco, tras corregir R-SUC (incidente 6) |
+| show ip interface brief (routers) | Interfaces en uso up/up | OK en R-HQ y R-SUC |
+| Búsqueda de nombres en SW-HQ-1 | Desactivada | OK: no ip domain-lookup |
+| C1.1, C2.1 y C4.1 (PC-ADM) | Éxito | OK |
+| Pestaña HTTP de SRV-TI | HTTPS apagado, sin archivos de ejemplo | OK: solo index.html |
+| Banner | Sin empresa, modelos ni IPs | OK en los cinco |
+
+Observaciones:
+- Limitación de Packet Tracer: logging trap solo ofrece debugging (nivel 7) en los
+  ISR4331 y en los 2960; logging trap informational da "Invalid input". Los cinco
+  equipos quedan en nivel 7, que incluye el informativo y envía además los mensajes de
+  depuración. Es una diferencia con la D24 causada por el simulador, no una decisión
+  de diseño.
+- El 2960 de Packet Tracer funciona como cliente NTP (pendiente "Por comprobar" de
+  CLAUDE.md, resuelto).
+- Pérdida intermitente de NTP: R-HQ y SW-SUC estaban sincronizados a la 1:38-1:39 UTC,
+  aparecieron sin sincronizar hacia las 2:10 (.INIT., "never updated") y se recuperaron
+  solos a las 2:17 (SW-SUC) y 2:18 (R-HQ), sin cambios de configuración. Los dos
+  tenían la línea ntp server y llegaban a SRV-TI (ping 5/5). R-HQ no se había
+  reiniciado (uptime 2 h 43 min). SW-SUC sí se reinició, hacia la 1:31-1:32 UTC (uptime
+  de 39 minutos a las 2:11), por una causa no registrada, pero eso fue antes de la
+  sincronización de la 1:38, así que no explica la pérdida. Se considera
+  comportamiento de Packet Tracer. Mientras NTP figuraba sin sincronizar, el reloj de
+  los dos equipos seguía con la hora correcta.
+- El "*" delante de la fecha de los mensajes no indica en Packet Tracer que el reloj
+  esté sin sincronizar: SW-HQ-1 generó un mensaje a las 02:02:53 con "*" estando
+  sincronizado (*~, reach 377). En este proyecto, la sincronización se comprueba con
+  show ntp status y show ntp associations.
+- Los milisegundos del búfer local no coinciden con los que recibe SRV-TI (por ejemplo,
+  R-HQ muestra 01:33:02.3333 y SRV-TI recibió 01:33:02.135). El valor de referencia es
+  el de SRV-TI.
+- En el búfer de los routers cada mensaje aparece dos veces; en los switches, una. En
+  SRV-TI no llegan duplicados.
+- Las filas 1 a 10 de la captura de syslog son los mensajes generados al configurar el
+  logging, antes de NTP: R-SUC y los switches llevan la fecha por defecto de Packet
+  Tracer (1993), el mismo problema de hora que corrige la D24 (OP-02). Las filas 1 y 2
+  (R-HQ, 11 nov 23:54) ya tenían una fecha actual, probablemente porque R-HQ se
+  sincronizó antes; la captura no lo prueba.
+- Los routers envían los logs con la IP de la interfaz de salida: R-SUC aparece como
+  10.255.255.2. La ACL de gestión del bloque 8 va en la .99, así que no afecta a este
+  tráfico, que va hacia la VLAN 30.
+- La pestaña NTP de SRV-TI muestra la hora del momento: la primera captura (11 nov,
+  11:30 p. m.) se tomó unas dos horas antes y se reemplazó por una tomada junto con
+  show clock.
+- SRV-TI: la auditoría (OP-04) solo revisó la pestaña HTTP. Al aplicar el bloque 2
+  aparecieron además TFTP, EMAIL (SMTP y POP3), FTP y VM Management activos. Se
+  apagaron todos según la D27. No se modifica docs/auditoria-v1.md.
+- Incidente 6: al configurar las descripciones se aplicó en R-SUC el bloque de R-HQ,
+  lo que creó las subinterfaces .10, .20, .30 y .40 (sin encapsulación ni IP) y dejó
+  descripciones de la central. Resuelto eliminándolas con "no interface" y escribiendo
+  las descripciones de R-SUC. Después: solo .50 y .99, vecindad OSPF en FULL y ping a
+  SRV-TI correcto. Los mismos comandos se pegaron también en SW-HQ-1, que los rechazó
+  todos porque no tiene esas interfaces, así que no hubo cambios. El mismo error fue
+  inofensivo en el switch y peligroso en el router, donde los comandos se aceptaron y
+  crearon subinterfaces.
+- En los ISR4331 de Packet Tracer no existe show interfaces description. Las
+  descripciones de los routers se verificaron con
+  show running-config | include interface|description.
+- En show ip ospf neighbor de R-SUC, R-HQ aparece como BDR; antes era el DR. La
+  vecindad se reinició en algún momento no registrado. La elección de DR en OSPF no es
+  preferente, y R-SUC (2.2.2.2) gana por router ID si los dos vuelven a la vez. El
+  enlace funciona.
+- show ip interface brief pega el nombre de la subinterfaz con la IP
+  (GigabitEthernet0/0/0.1010.10.10.1): el nombre es más largo que la columna. Es un
+  problema de formato del simulador; se transcribe tal cual.
+- Las Vlan99 de los switches se describen "GESTION" y las subinterfaces .99 de los
+  routers "VLAN 99 GESTION". Se mantiene así.
+- R-HQ: el banner tiene un espacio más al principio que en los demás equipos.
+  No afecta.
+- Los puertos sin uso no tienen descripción: se describen en el bloque 3.
