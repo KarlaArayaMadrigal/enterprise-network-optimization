@@ -161,8 +161,9 @@ reactivan desde Services. Los archivos de ejemplo borrados solo se recuperan des
 | `show interfaces <trunk> switchport` | Negotiation of Trunking: Off |
 | `show vlan brief` | 998 con los puertos sin uso, 999 creada; los puertos de acceso en su VLAN |
 | `show ip interface brief` | Los puertos sin uso en administratively down y ninguno en uso caído |
+| `show interfaces <puerto sin uso> switchport` (uno por switch) | "Administrative Mode: static access" y "Access Mode VLAN: 998" |
 | `show port-security` y `show port-security address` | Un puerto seguro por equipo, 0 violaciones, y MACs sticky que coinciden con las de `tests/v1-dhcp-pcs.txt` (y las de SRV-TI y PC-TI) |
-| `show spanning-tree` en SW-HQ-1 y SW-HQ-2 | Los puertos de acceso como "P2p Edge". En la v1 eran "P2p" sin Edge (evidencia de SW-03) |
+| `show spanning-tree` en SW-HQ-1 y SW-HQ-2 | Los puertos de acceso como "P2p Edge". En la v1 eran "P2p" sin Edge (evidencia de SW-03). En Packet Tracer no aparece "Edge": la evidencia es `show spanning-tree interface <puerto> detail` ("The port is in the portfast mode") |
 | `show cdp interface` en un puerto de acceso | El puerto no aparece |
 | Repetir B1 completa, B2 completa, B4.1 y B4.2, y los pings del bloque 1 desde PC-TI | Todo igual que en la v1: las ⚠ siguen pasando porque todavía no hay ACLs |
 

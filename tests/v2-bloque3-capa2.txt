@@ -1,0 +1,1864 @@
+Proyecto de portafolio. Comercial Horizonte S.A. es una empresa ficticia y la red es una
+simulación en Cisco Packet Tracer.
+
+Bloque 3 del plan de aplicación de la v2 (docs/plan-v2.md): capa 2, VLANs, trunks y
+puertos (D13, D14, D17, D18 y D20)
+Archivo: diagrams/horizonte-v2.pkt
+Salidas obtenidas por Karla en Packet Tracer (CLI de SW-HQ-1, SW-HQ-2, SW-SUC, R-HQ y
+R-SUC, y Command Prompt de las PCs) y transcritas tal como las entregó. De algunas
+running-config se transcribe solo la sección de las interfaces que se revisaron.
+
+Fecha de trabajo: 2026-11-12 (UTC, D24).
+
+############################################################
+Configuración — 2026-11-12
+############################################################
+
+1. VLANs 998 (SIN-USO) y 999 (NATIVA) en SW-HQ-1, SW-HQ-2 y SW-SUC (D13).
+
+2. Trunk SW-SUC Gi0/1 hacia R-SUC: nativa 999, permitidas 50, 99 y 999, DTP
+   desactivado (switchport nonegotiate). R-SUC no se modifica.
+
+3. Trunk SW-HQ-1 Gi0/1 hacia R-HQ: nativa 999, permitidas 10, 20, 30, 40, 99 y 999,
+   DTP desactivado. R-HQ no se modifica.
+   Al primer intento los comandos no se aplicaron (se perdieron al pegar el bloque).
+   Después se aplicó la nativa 99 por error (un dígito); show interfaces trunk lo
+   detectó y se corrigió a 999 antes de los pings. Las salidas de "después" son
+   posteriores a la corrección (ver "Incidentes del bloque").
+
+4. Trunks SW-HQ-1 <-> SW-HQ-2 (Fa0/1 y Fa0/2, con interface range): nativa 999,
+   permitidas 10, 20, 40, 99 y 999, DTP desactivado. Primero SW-HQ-1 e inmediatamente
+   SW-HQ-2 (incidente 1).
+
+5. Puertos de acceso (SW-HQ-1 Fa0/10 y Fa0/11, SW-HQ-2 Fa0/10 a Fa0/12, SW-SUC Fa0/10):
+   PortFast, BPDU Guard, switchport nonegotiate, no cdp enable y port-security
+   (máximo 1, sticky, violación shutdown). Después, un ping desde cada equipo para que
+   el switch aprenda su MAC.
+   En SW-HQ-1 el comando sticky se omitió al principio: las MACs aparecían como
+   DynamicConfigured y la running-config no tenía las líneas sticky. Se agregó el
+   comando y las MACs pasaron a SecureSticky. En SW-HQ-2 y SW-SUC se incluyó desde el
+   principio. Las salidas transcritas son posteriores.
+
+6. Puertos sin uso: modo acceso, VLAN 998, descripción "SIN USO" y shutdown.
+   - SW-HQ-1: Fa0/3-9, Fa0/12-24 y Gi0/2.
+   - SW-HQ-2: Fa0/3-9, Fa0/13-24, Gi0/1 y Gi0/2.
+   - SW-SUC: Fa0/1-9, Fa0/11-24 y Gi0/2.
+   En SW-HQ-1 se aplicó el shutdown antes que el modo acceso, la VLAN y la descripción
+   (los puertos quedaron apagados en la VLAN 1 y sin descripción); sin efecto sobre los
+   puertos en uso, porque los rangos eran los de SW-HQ-1. Después se completó el resto.
+   En SW-HQ-2 se aplicaron por error los comandos de apagado de SW-HQ-1: el rango
+   Fa0/12-24 apagó Fa0/12 (PC-INV). Se corrigió con no shutdown (incidente 7).
+
+7. Configuración guardada en SW-HQ-1, SW-HQ-2 y SW-SUC y .pkt guardado, después de la
+   regresión. Los routers no se modificaron en este bloque.
+
+############################################################
+1. VLANs 998 y 999 (después del paso 1)
+############################################################
+
+SW-HQ-1#show vlan brief
+*Nov 12, 03:06:28.066: SYS-5-CONFIG_I: Configured from console by console
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/12
+                                                Fa0/13, Fa0/14, Fa0/15, Fa0/16
+                                                Fa0/17, Fa0/18, Fa0/19, Fa0/20
+                                                Fa0/21, Fa0/22, Fa0/23, Fa0/24
+                                                Gig0/2
+10   ADMINISTRACION                   active
+20   VENTAS                           active
+30   TI                               active    Fa0/10, Fa0/11
+40   INVITADOS                        active
+99   GESTION                          active
+998  SIN-USO                          active
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+SW-HQ-1#
+
+SW-HQ-2#show vlan brief
+*Nov 12, 03:07:32.077: SYS-5-CONFIG_I: Configured from console by console
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/1
+                                                Gig0/2
+10   ADMINISTRACION                   active    Fa0/10
+20   VENTAS                           active    Fa0/11
+30   TI                               active
+40   INVITADOS                        active    Fa0/12
+99   GESTION                          active
+998  SIN-USO                          active
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+SW-HQ-2#
+
+SW-SUC#show vlan brief
+*Nov 12, 03:08:07.088: SYS-5-CONFIG_I: Configured from console by console
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9, Fa0/11, Fa0/12, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/2
+50   VENTAS-SUCURSAL                  active    Fa0/10
+99   GESTION                          active
+998  SIN-USO                          active
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+SW-SUC#
+
+############################################################
+2. Trunk SW-SUC Gi0/1 hacia R-SUC
+############################################################
+
+--- Antes (configuración de la v1) ---
+
+SW-SUC#show int trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Gig0/1      on           802.1q         trunking      1
+
+Port        Vlans allowed on trunk
+Gig0/1      1-1005
+
+Port        Vlans allowed and active in management domain
+Gig0/1      1,50,99,998,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gig0/1      1,50,99,998,999
+
+SW-SUC#show int gi0/1 switchport
+Name: Gig0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: On
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+--- Después ---
+
+SW-SUC#show int trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Gig0/1      on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Gig0/1      50,99,999
+
+Port        Vlans allowed and active in management domain
+Gig0/1      50,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gig0/1      50,99,999
+
+SW-SUC#show int gi0/1 switch
+Name: Gig0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: Off
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 999 (NATIVA)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: 50,99,999
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+--- Pings después del cambio ---
+
+PC-SUC -> 10.20.50.1
+C:\>ping 10.20.50.1
+
+Pinging 10.20.50.1 with 32 bytes of data:
+
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.20.50.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-SUC -> 10.10.30.10
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+R-SUC -> 10.20.99.11
+R-SUC#ping 10.20.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.20.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+############################################################
+3. Trunk SW-HQ-1 Gi0/1 hacia R-HQ
+############################################################
+
+--- Antes (configuración de la v1; también es el "antes" de Fa0/1 y Fa0/2) ---
+
+SW-HQ-1#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+Fa0/2       on           802.1q         trunking      1
+Gig0/1      on           802.1q         trunking      1
+
+Port        Vlans allowed on trunk
+Fa0/1       1-1005
+Fa0/2       1-1005
+Gig0/1      1-1005
+
+Port        Vlans allowed and active in management domain
+Fa0/1       1,10,20,30,40,99,998,999
+Fa0/2       1,10,20,30,40,99,998,999
+Gig0/1      1,10,20,30,40,99,998,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       1,10,20,30,40,99,998,999
+Fa0/2       1,10,20,30,40,99,998,999
+Gig0/1      1,10,20,30,40,99,998,999
+
+SW-HQ-1#show interfaces gi0/1 switchport
+Name: Gig0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: On
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+--- Después ---
+
+SW-HQ-1#show interfaces gi0/1 switchport
+Name: Gig0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: Off
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 999 (NATIVA)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: 10,20,30,40,99,999
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+SW-HQ-1#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+Fa0/2       on           802.1q         trunking      1
+Gig0/1      on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Fa0/1       1-1005
+Fa0/2       1-1005
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans allowed and active in management domain
+Fa0/1       1,10,20,30,40,99,998,999
+Fa0/2       1,10,20,30,40,99,998,999
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       1,10,20,30,40,99,998,999
+Fa0/2       1,10,20,30,40,99,998,999
+Gig0/1      10,20,30,40,99,999
+
+--- Pings después del cambio ---
+
+PC-TI -> 10.10.30.1
+C:\>ping 10.10.30.1
+
+Pinging 10.10.30.1 with 32 bytes of data:
+
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.30.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-ADM -> 10.10.10.1
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-VEN -> 10.10.20.1
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-INV -> 10.10.40.1
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=11ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=20ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 20ms, Average = 7ms
+
+R-HQ -> 10.10.99.11
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R-HQ -> 10.10.99.12
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+PC-SUC -> 10.10.30.10
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+############################################################
+4. Trunks SW-HQ-1 <-> SW-HQ-2 (Fa0/1 y Fa0/2)
+############################################################
+
+--- Antes (configuración de la v1) ---
+El "antes" de show interfaces trunk en SW-HQ-1 está en la sección 3.
+
+SW-HQ-1#show interfaces fa0/1 switchport
+Name: Fa0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: On
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+SW-HQ-2#show interfaces fa0/1 switchport
+Name: Fa0/1
+Switchport: Enabled
+Administrative Mode: trunk
+Operational Mode: trunk
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: dot1q
+Negotiation of Trunking: On
+Access Mode VLAN: 1 (default)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+--- Durante el cambio: mensajes de consola (evidencia relacionada con el incidente 1) ---
+
+SW-HQ-1(config-if-range)#switchport trunk native vlan 999
+SW-HQ-1(config-if-range)#swit
+SW-HQ-1(config-if-range)#switchport tru
+SW-HQ-1(config-if-range)#switchport trunk allowed vlan 10,20,40,99,999
+*Nov 12, 04:37:04.3737: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/1 (999), with SW-HQ-2 FastEthernet0/1 (1).
+*Nov 12, 04:37:04.3737: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/2 (999), with SW-HQ-2 FastEthernet0/2 (1).
+SW-HQ-1(config-if-range)#swit
+SW-HQ-1(config-if-range)#switchport none
+SW-HQ-1(config-if-range)#switchport nonegotiate
+SW-HQ-1(config-if-range)#end
+SW-HQ-1#
+*Nov 12, 04:37:27.3737: SYS-5-CONFIG_I: Configured from console by console
+*Nov 12, 04:38:04.3838: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/1 (999), with SW-HQ-2 FastEthernet0/1 (1).
+*Nov 12, 04:38:04.3838: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/2 (999), with SW-HQ-2 FastEthernet0/2 (1).
+SW-HQ-1#
+SW-HQ-1#
+
+SW-HQ-2(config)#int range fa0/1-
+*Nov 12, 04:38:04.3838: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/1 (1), with SW-HQ-1 FastEthernet0/1 (999).
+*Nov 12, 04:38:04.3838: %CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/2 (1), with SW-HQ-1 FastEthernet0/2 (999).2
+SW-HQ-2(config-if-range)#int range fa0/1-2
+SW-HQ-2(config-if-range)#swit
+SW-HQ-2(config-if-range)#switchport trunk native vlan 999
+SW-HQ-2(config-if-range)#
+*Nov 12, 04:38:29.3838: SPANTREE-2-UNBLOCK_CONSIST_PORT: Unblocking FastEthernet0/2 on VLAN0999. Port consistency restored.
+
+*Nov 12, 04:38:29.3838: SPANTREE-2-UNBLOCK_CONSIST_PORT: Unblocking FastEthernet0/2 on VLAN0001. Port consistency restored.
+
+*Nov 12, 04:38:29.3838: SPANTREE-2-UNBLOCK_CONSIST_PORT: Unblocking FastEthernet0/1 on VLAN0999. Port consistency restored.
+
+*Nov 12, 04:38:29.3838: SPANTREE-2-UNBLOCK_CONSIST_PORT: Unblocking FastEthernet0/1 on VLAN0001. Port consistency restored.
+
+Lectura:
+- Tras cambiar la nativa en SW-HQ-1, CDP detecta en los dos puertos la nativa distinta
+  (999 frente a 1). El aviso se repite cada 60 segundos (intervalo de CDP).
+- Al igualar la nativa en SW-HQ-2 (unos 85 segundos después), STP desbloquea Fa0/1 y
+  Fa0/2 solo en las VLANs 1 y 999, las dos nativas en juego. Las VLANs 10, 20, 40 y 99
+  no aparecen en los mensajes de desbloqueo. Se resuelve solo al igualar los dos
+  extremos, como en el incidente 1.
+- Los mensajes de bloqueo previos no quedaron en la salida transcrita.
+- "switchport none" es un resto del autocompletado. No dejó ninguna línea en la
+  configuración (ver la running-config de abajo).
+
+--- Después ---
+
+SW-HQ-1#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      999
+Fa0/2       on           802.1q         trunking      999
+Gig0/1      on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Fa0/1       10,20,40,99,999
+Fa0/2       10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans allowed and active in management domain
+Fa0/1       10,20,40,99,999
+Fa0/2       10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       10,20,40,99,999
+Fa0/2       10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+SW-HQ-2#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      999
+Fa0/2       on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Fa0/1       10,20,40,99,999
+Fa0/2       10,20,40,99,999
+
+Port        Vlans allowed and active in management domain
+Fa0/1       10,20,40,99,999
+Fa0/2       10,20,40,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Fa0/1       10,20,40,99,999
+Fa0/2       none
+
+(En SW-HQ-2, Fa0/2 está bloqueado por STP: es el enlace redundante. Se resuelve con el
+EtherChannel del bloque 4.)
+
+Running-config, extracto (Fa0/1 y Fa0/2):
+
+SW-HQ-1
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-2 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-2 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+
+SW-HQ-2
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-1 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-1 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+
+--- Pings después del cambio ---
+
+R-HQ -> 10.10.99.12
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/2 ms
+
+PC-ADM -> 10.10.10.1
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-VEN -> 10.10.20.1
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+PC-INV -> 10.10.40.1
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time=13ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 13ms, Average = 3ms
+
+PC-TI -> 10.10.10.21 (PC-ADM)
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time=11ms TTL=127
+Reply from 10.10.10.21: bytes=32 time=1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 3ms
+
+############################################################
+5. Puertos de acceso
+############################################################
+
+--- Running-config, extracto ---
+
+SW-HQ-1
+interface FastEthernet0/10
+ description ACCESO a SRV-TI Fa0
+ switchport access vlan 30
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 000B.BED2.914E
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/11
+ description ACCESO a PC-TI Fa0
+ switchport access vlan 30
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0001.6474.2A88
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+
+SW-HQ-2 (copiada después de los pings; una copia anterior, tomada antes de que el switch
+aprendiera las MACs, no tenía las líneas sticky con la MAC y no se incluye)
+interface FastEthernet0/10
+ description ACCESO a PC-ADM Fa0
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0030.A3ED.5E46
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/11
+ description ACCESO a PC-VEN Fa0
+ switchport access vlan 20
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0010.1172.A4CD
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/12
+ description ACCESO a PC-INV Fa0
+ switchport access vlan 40
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0001.63CA.DB04
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+
+SW-SUC
+interface FastEthernet0/10
+ description ACCESO a PC-SUC Fa0
+ switchport access vlan 50
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0030.F2CE.822A
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+
+Nota: el máximo de 1 MAC y la violación shutdown son los valores por defecto, así que
+IOS no los muestra en la running-config. La evidencia es show port-security.
+
+--- Port-security ---
+
+SW-HQ-1#show port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+       Fa0/10        1          1                 0         Shutdown
+       Fa0/11        1          1                 0         Shutdown
+----------------------------------------------------------------------
+
+SW-HQ-1#show port-security address
+               Secure Mac Address Table
+-----------------------------------------------------------------------------
+Vlan    Mac Address       Type                          Ports   Remaining Age
+                                                                   (mins)
+----    -----------       ----                          -----   -------------
+  30    000B.BED2.914E    SecureSticky                  Fa0/10       -
+  30    0001.6474.2A88    SecureSticky                  Fa0/11       -
+-----------------------------------------------------------------------------
+Total Addresses in System (excluding one mac per port)     : 0
+Max Addresses limit in System (excluding one mac per port) : 1024
+
+SW-HQ-2#show port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+       Fa0/10        1          1                 0         Shutdown
+       Fa0/11        1          1                 0         Shutdown
+       Fa0/12        1          1                 0         Shutdown
+----------------------------------------------------------------------
+
+SW-HQ-2#show port-security address
+               Secure Mac Address Table
+-----------------------------------------------------------------------------
+Vlan    Mac Address       Type                          Ports   Remaining Age
+                                                                   (mins)
+----    -----------       ----                          -----   -------------
+  10    0030.A3ED.5E46    SecureSticky                  Fa0/10       -
+  20    0010.1172.A4CD    SecureSticky                  Fa0/11       -
+  40    0001.63CA.DB04    SecureSticky                  Fa0/12       -
+-----------------------------------------------------------------------------
+Total Addresses in System (excluding one mac per port)     : 0
+Max Addresses limit in System (excluding one mac per port) : 1024
+
+SW-SUC# sh port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+       Fa0/10        1          1                 0         Shutdown
+----------------------------------------------------------------------
+
+SW-SUC# sh port-security add
+               Secure Mac Address Table
+-----------------------------------------------------------------------------
+Vlan    Mac Address       Type                          Ports   Remaining Age
+                                                                   (mins)
+----    -----------       ----                          -----   -------------
+  50    0030.F2CE.822A    SecureSticky                  Fa0/10       -
+-----------------------------------------------------------------------------
+Total Addresses in System (excluding one mac per port)     : 0
+Max Addresses limit in System (excluding one mac per port) : 1024
+
+--- Comparación de las MACs sticky ---
+
+| Switch y puerto | Equipo | MAC sticky     | MAC de referencia                         | ¿Coincide? |
+|-----------------|--------|----------------|-------------------------------------------|------------|
+| SW-HQ-1 Fa0/10  | SRV-TI | 000B.BED2.914E | Pestaña Config de SRV-TI (anotada por Karla) | Sí      |
+| SW-HQ-1 Fa0/11  | PC-TI  | 0001.6474.2A88 | ipconfig /all de PC-TI (anotada por Karla)   | Sí      |
+| SW-HQ-2 Fa0/10  | PC-ADM | 0030.A3ED.5E46 | tests/v1-dhcp-pcs.txt                     | Sí         |
+| SW-HQ-2 Fa0/11  | PC-VEN | 0010.1172.A4CD | tests/v1-dhcp-pcs.txt                     | Sí         |
+| SW-HQ-2 Fa0/12  | PC-INV | 0001.63CA.DB04 | tests/v1-dhcp-pcs.txt                     | Sí         |
+| SW-SUC Fa0/10   | PC-SUC | 0030.F2CE.822A | tests/v1-dhcp-pcs.txt                     | Sí         |
+
+--- Spanning tree (PortFast) ---
+
+SW-HQ-1#sh spanning-tree
+VLAN0001
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32769
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0010
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0020
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0030
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32798
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32798  (priority 32768 sys-id-ext 30)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0040
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0099
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0998
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    33766
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33766  (priority 32768 sys-id-ext 998)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0999
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    33767
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Desg FWD 19        128.1    P2p
+Fa0/2            Desg FWD 19        128.2    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+SW-HQ-2#sh spanning-tree
+VLAN0001
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32769
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0010
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/10           Desg FWD 19        128.10   P2p
+
+VLAN0020
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+
+VLAN0030
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32798
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32798  (priority 32768 sys-id-ext 30)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg FWD 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0998
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    33766
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33766  (priority 32768 sys-id-ext 998)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0999
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    33767
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#show spanning-tree interface fa0/10 detail
+
+
+
+Port 10 (FastEthernet0/10) of VLAN0010 is designated forwarding
+  Port path cost 19, Port priority 128, Port Identifier 128.10
+  Designated root has priority 32778, address 000D.BD84.508B
+  Designated bridge has priority 32778, address 0030.F29A.CABC
+  Designated port id is 128.10, designated path cost 19
+  Timers: message age 16, forward delay 0, hold 0
+  Number of transitions to forwarding state: 1
+  The port is in the portfast mode
+  Link type is point-to-point by default
+
+Lectura:
+- SW-HQ-1 es la raíz en todas las VLANs por tener la MAC más baja (000D.BD84.508B
+  frente a 0030.F29A.CABC), igual que en la v1, no por configuración. Se fija en el
+  bloque 4 (D16).
+- Los puertos de acceso aparecen como "P2p" sin "Edge" aunque tienen PortFast. El
+  detalle del puerto confirma "The port is in the portfast mode". Es la evidencia de
+  SW-03 en Packet Tracer (ver las observaciones).
+
+--- CDP ---
+
+SW-HQ-2#show cdp interface
+FastEthernet0/1 is up, line protocol is up
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/2 is up, line protocol is up
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/3 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/4 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/5 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/6 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/7 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/8 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/9 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/13 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/14 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/15 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/16 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/17 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/18 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/19 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/20 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/21 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/22 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/23 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+FastEthernet0/24 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+GigabitEthernet0/1 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+GigabitEthernet0/2 is down, line protocol is down
+  Sending CDP packets every 60 seconds
+  Holdtime is 180 seconds
+
+Lectura: Fa0/10, Fa0/11 y Fa0/12 (puertos de usuarios) no aparecen; Fa0/1 y Fa0/2
+(trunk hacia SW-HQ-1) sí (D20). En SW-HQ-1 y SW-SUC, los puertos de acceso tienen
+"no cdp enable" en la running-config (extracto de arriba).
+
+############################################################
+6. Puertos sin uso
+############################################################
+
+--- Primer intento en SW-HQ-1 (shutdown aplicado antes que el resto) ---
+
+SW-HQ-1(config-if)#do sh int status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/1     TRUNK a SW-HQ-2 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-2 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3                        disabled 1          auto    auto  10/100BaseTX
+Fa0/4                        disabled 1          auto    auto  10/100BaseTX
+Fa0/5                        disabled 1          auto    auto  10/100BaseTX
+Fa0/6                        disabled 1          auto    auto  10/100BaseTX
+Fa0/7                        disabled 1          auto    auto  10/100BaseTX
+Fa0/8                        disabled 1          auto    auto  10/100BaseTX
+Fa0/9                        disabled 1          auto    auto  10/100BaseTX
+Fa0/10    ACCESO a SRV-TI Fa connected    30         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-TI Fa0 connected    30         a-full  a-100 10/100BaseTX
+Fa0/12                       disabled 1          auto    auto  10/100BaseTX
+Fa0/13                       disabled 1          auto    auto  10/100BaseTX
+Fa0/14                       disabled 1          auto    auto  10/100BaseTX
+Fa0/15                       disabled 1          auto    auto  10/100BaseTX
+Fa0/16                       disabled 1          auto    auto  10/100BaseTX
+Fa0/17                       disabled 1          auto    auto  10/100BaseTX
+Fa0/18                       disabled 1          auto    auto  10/100BaseTX
+Fa0/19                       disabled 1          auto    auto  10/100BaseTX
+Fa0/20                       disabled 1          auto    auto  10/100BaseTX
+Fa0/21                       disabled 1          auto    auto  10/100BaseTX
+Fa0/22                       disabled 1          auto    auto  10/100BaseTX
+Fa0/23                       disabled 1          auto    auto  10/100BaseTX
+Fa0/24                       disabled 1          auto    auto  10/100BaseTX
+Gig0/1    TRUNK a R-HQ G0/0/ connected    trunk      a-full  a-100 10/100/1000BaseTX
+Gig0/2                       disabled 1          auto    auto  10/100/1000BaseTX
+
+--- Incidente 7: comandos de SW-HQ-1 aplicados en SW-HQ-2 ---
+
+SW-HQ-2#show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/1     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3                        disabled 1          auto    auto  10/100BaseTX
+Fa0/4                        disabled 1          auto    auto  10/100BaseTX
+Fa0/5                        disabled 1          auto    auto  10/100BaseTX
+Fa0/6                        disabled 1          auto    auto  10/100BaseTX
+Fa0/7                        disabled 1          auto    auto  10/100BaseTX
+Fa0/8                        disabled 1          auto    auto  10/100BaseTX
+Fa0/9                        disabled 1          auto    auto  10/100BaseTX
+Fa0/10    ACCESO a PC-ADM Fa connected    10         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-VEN Fa connected    20         a-full  a-100 10/100BaseTX
+Fa0/12    ACCESO a PC-INV Fa disabled 40         auto    auto  10/100BaseTX
+Fa0/13                       disabled 1          auto    auto  10/100BaseTX
+Fa0/14                       disabled 1          auto    auto  10/100BaseTX
+Fa0/15                       disabled 1          auto    auto  10/100BaseTX
+Fa0/16                       disabled 1          auto    auto  10/100BaseTX
+Fa0/17                       disabled 1          auto    auto  10/100BaseTX
+Fa0/18                       disabled 1          auto    auto  10/100BaseTX
+Fa0/19                       disabled 1          auto    auto  10/100BaseTX
+Fa0/20                       disabled 1          auto    auto  10/100BaseTX
+Fa0/21                       disabled 1          auto    auto  10/100BaseTX
+Fa0/22                       disabled 1          auto    auto  10/100BaseTX
+Fa0/23                       disabled 1          auto    auto  10/100BaseTX
+Fa0/24                       disabled 1          auto    auto  10/100BaseTX
+Gig0/1                       notconnect   1          auto    auto  10/100/1000BaseTX
+Gig0/2                       disabled 1          auto    auto  10/100/1000BaseTX
+
+Lectura:
+- Fa0/12 (PC-INV, VLAN 40) está "disabled": lo apagó el rango Fa0/12-24 de SW-HQ-1.
+- Los puertos apagados coinciden con los rangos de SW-HQ-1 (Fa0/3-9, Fa0/12-24 y
+  Gi0/2). Gi0/1 queda "notconnect" y no "disabled", porque no estaba en esos rangos.
+  Es la huella de que los comandos eran los de SW-HQ-1.
+- Se resolvió con no shutdown en Fa0/12. Port-security quedó con 0 violaciones (ver
+  show port-security en la sección 5) y PC-INV volvió a llegar a su gateway (B1.3 en
+  la sección 7).
+
+--- Después (los tres switches) ---
+
+SW-HQ-1#show vlan brief
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active
+10   ADMINISTRACION                   active
+20   VENTAS                           active
+30   TI                               active    Fa0/10, Fa0/11
+40   INVITADOS                        active
+99   GESTION                          active
+998  SIN-USO                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/12
+                                                Fa0/13, Fa0/14, Fa0/15, Fa0/16
+                                                Fa0/17, Fa0/18, Fa0/19, Fa0/20
+                                                Fa0/21, Fa0/22, Fa0/23, Fa0/24
+                                                Gig0/2
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+
+SW-HQ-1#show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/1     TRUNK a SW-HQ-2 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-2 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/4     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/5     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/6     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/7     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/8     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/9     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/10    ACCESO a SRV-TI Fa connected    30         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-TI Fa0 connected    30         a-full  a-100 10/100BaseTX
+Fa0/12    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/13    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/14    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/15    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/16    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/17    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/18    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/19    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/20    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/21    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/22    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/23    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/24    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Gig0/1    TRUNK a R-HQ G0/0/ connected    trunk      a-full  a-100 10/100/1000BaseTX
+Gig0/2    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+
+SW-HQ-2(config-if)#do show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/1     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/4     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/5     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/6     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/7     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/8     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/9     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/10    ACCESO a PC-ADM Fa connected    10         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-VEN Fa connected    20         a-full  a-100 10/100BaseTX
+Fa0/12    ACCESO a PC-INV Fa connected    40         a-full  a-100 10/100BaseTX
+Fa0/13    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/14    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/15    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/16    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/17    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/18    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/19    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/20    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/21    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/22    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/23    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/24    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Gig0/1    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+Gig0/2    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+
+SW-SUC#show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/1     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/2     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/3     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/4     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/5     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/6     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/7     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/8     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/9     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/10    ACCESO a PC-SUC Fa connected    50         a-full  a-100 10/100BaseTX
+Fa0/11    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/12    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/13    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/14    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/15    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/16    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/17    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/18    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/19    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/20    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/21    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/22    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/23    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/24    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Gig0/1    TRUNK a R-SUC G0/0 connected    trunk      a-full  a-100 10/100/1000BaseTX
+Gig0/2    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+
+--- Modo acceso (un puerto sin uso por switch) ---
+
+SW-HQ-1#show interfaces fa0/3 switchport
+Name: Fa0/3
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: down
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: native
+Negotiation of Trunking: Off
+Access Mode VLAN: 998 (SIN-USO)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+SW-HQ-2#show interfaces fa0/3 switchport
+Name: Fa0/3
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: down
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: native
+Negotiation of Trunking: Off
+Access Mode VLAN: 998 (SIN-USO)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+SW-SUC#show interfaces fa0/1 switchport
+Name: Fa0/1
+Switchport: Enabled
+Administrative Mode: static access
+Operational Mode: down
+Administrative Trunking Encapsulation: dot1q
+Operational Trunking Encapsulation: native
+Negotiation of Trunking: Off
+Access Mode VLAN: 998 (SIN-USO)
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none
+Administrative private-vlan host-association: none
+Administrative private-vlan mapping: none
+Administrative private-vlan trunk native VLAN: none
+Administrative private-vlan trunk encapsulation: dot1q
+Administrative private-vlan trunk normal VLANs: none
+Administrative private-vlan trunk private VLANs: none
+Operational private-vlan: none
+Trunking VLANs Enabled: All
+Pruning VLANs Enabled: 2-1001
+Capture Mode Disabled
+Capture VLANs Allowed: ALL
+Protected: false
+Unknown unicast blocked: disabled
+Unknown multicast blocked: disabled
+Appliance trust: none
+
+############################################################
+7. Regresión (después de los pasos 5 y 6)
+############################################################
+
+Sin ACLs todavía: B2.2, B2.5 y B2.6 deben pasar (⚠). Serán fallos esperados después del
+bloque 8 (D7).
+
+PC-ADM
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time=10ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=16ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 16ms, Average = 4ms
+
+PC-VEN
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time=1ms TTL=127
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+PC-INV
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time=11ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+PC-SUC
+C:\>ping 10.20.50.1
+
+Pinging 10.20.50.1 with 32 bytes of data:
+
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.20.50.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+R-HQ
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+R-SUC
+R-SUC#ping 10.20.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.20.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+PC-TI (pings del bloque 1)
+C:\>ping 10.10.30.1
+
+Pinging 10.10.30.1 with 32 bytes of data:
+
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.30.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.30.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=128
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=128
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=128
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=128
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.99.11
+
+Pinging 10.10.99.11 with 32 bytes of data:
+
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.10.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.99.12
+
+Pinging 10.10.99.12 with 32 bytes of data:
+
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.10.99.12:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.20.99.11
+
+Pinging 10.20.99.11 with 32 bytes of data:
+
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+
+Ping statistics for 10.20.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+--- Resumen de la regresión ---
+
+| Prueba | Origen | Destino             | Esperado ahora      | Resultado          |
+|--------|--------|---------------------|---------------------|--------------------|
+| B1.1   | PC-ADM | 10.10.10.1          | Éxito, TTL=255      | 4/4, TTL=255       |
+| B1.2   | PC-VEN | 10.10.20.1          | Éxito, TTL=255      | 4/4, TTL=255       |
+| B1.3   | PC-INV | 10.10.40.1          | Éxito, TTL=255      | 4/4, TTL=255       |
+| B1.4   | PC-SUC | 10.20.50.1          | Éxito, TTL=255      | 4/4, TTL=255       |
+| B2.1   | PC-ADM | 10.10.20.21         | Éxito, TTL=127      | 4/4, TTL=127       |
+| B2.2 ⚠ | PC-VEN | 10.10.40.21         | Éxito (sin ACLs)    | 4/4, TTL=127       |
+| B2.3   | PC-ADM | 10.10.30.10         | Éxito, TTL=127      | 4/4, TTL=127       |
+| B2.4   | PC-VEN | 10.10.30.10         | Éxito, TTL=127      | 4/4, TTL=127       |
+| B2.5 ⚠ | PC-INV | 10.10.30.10         | Éxito (sin ACLs)    | 4/4, TTL=127       |
+| B2.6 ⚠ | PC-INV | 10.10.10.21         | Éxito (sin ACLs)    | 4/4, TTL=127       |
+| B4.1   | R-HQ   | 10.10.99.11 y .12   | 100 %               | 5/5 y 5/5          |
+| B4.2   | R-SUC  | 10.20.99.11         | 100 %               | 5/5                |
+| Bl. 1  | PC-TI  | 10.10.30.1          | Éxito, TTL=255      | 4/4, TTL=255       |
+| Bl. 1  | PC-TI  | 10.10.30.10         | Éxito, TTL=128      | 4/4, TTL=128       |
+| Bl. 1  | PC-TI  | 10.10.10.21         | Éxito, TTL=127      | 4/4, TTL=127       |
+| Bl. 1  | PC-TI  | 10.10.99.11 y .12   | Éxito, TTL=254      | 4/4 y 4/4, TTL=254 |
+| Bl. 1  | PC-TI  | 10.20.99.11         | Éxito, TTL=253      | 4/4, TTL=253       |
+| Bl. 1  | PC-TI  | nslookup www        | 10.10.30.10         | 10.10.30.10        |
+
+############################################################
+Observaciones y limitaciones de Packet Tracer
+############################################################
+
+1. show spanning-tree no muestra "Edge" en los puertos con PortFast: aparecen como
+   "P2p". La evidencia de PortFast (SW-03) es show spanning-tree interface <puerto>
+   detail, que dice "The port is in the portfast mode".
+2. Ese detalle tampoco muestra la línea de BPDU Guard. En Packet Tracer, la evidencia de
+   BPDU Guard es solo la running-config (spanning-tree bpduguard enable).
+3. show spanning-tree muestra los trunks también en VLANs que no están en su lista de
+   permitidas (por ejemplo, Fa0/1 y Fa0/2 en las VLANs 1, 30 y 998). En IOS real no
+   aparecerían. show interfaces trunk sí muestra solo las permitidas, así que el
+   filtrado funciona.
+4. El campo de milisegundos de las marcas de tiempo repite el minuto (por ejemplo,
+   03:06:28.066, 04:37:04.3737, 06:21:01.2121). Pasa también en las salidas del bloque 2
+   (tests/v2-bloque2-config-base.txt). Los milisegundos no son reales.
+5. El máximo de 1 MAC y la violación shutdown no aparecen en la running-config porque
+   son los valores por defecto. La evidencia es show port-security.
+
+############################################################
+Incidentes del bloque
+############################################################
+
+Parte del bloque se trabajó con Claude en claude.ai. Los puntos 2 y 3 se registran según
+el relato de Karla, sin salida transcrita. El punto 1 tiene salida (sección 6).
+
+1. Incidente 7 (CLAUDE.md): en SW-HQ-2 se aplicaron los comandos de apagado de los
+   puertos sin uso de SW-HQ-1. El rango Fa0/12-24 apagó Fa0/12, el puerto de PC-INV,
+   que quedó sin red. Detectado con show interfaces status y resuelto con no shutdown;
+   port-security quedó con 0 violaciones y PC-INV volvió a llegar a su gateway.
+
+2. Casi incidente: VLAN nativa 99 en vez de 999 en SW-HQ-1 Gi0/1 (error de un dígito).
+   show interfaces trunk lo detectó y se corrigió antes de seguir. No hay evidencia de su
+   efecto, porque los pings se hicieron después de corregirlo.
+   Efecto probable (análisis, no comprobado): la VLAN 99 saldría sin etiqueta hacia
+   R-HQ, cuya subinterfaz .99 espera tramas etiquetadas, y la gestión de la central
+   perdería su gateway.
+
+3. Sticky omitido en SW-HQ-1: las MACs aparecían como DynamicConfigured y la
+   running-config no tenía las líneas sticky. Se agregó el comando y las MACs pasaron a
+   SecureSticky. Sin sticky, las MACs no habrían quedado en la configuración guardada.
+
+4. Lección de método: al pegar bloques de comandos en la CLI de Packet Tracer se
+   perdieron líneas (en el paso 3, el trunk de SW-HQ-1 no cambió al primer intento).
+   Desde ese paso los comandos se escribieron línea por línea, comprobando el prompt.
+   Eso evita perder líneas, pero no aplicar los comandos en el equipo equivocado
+   (punto 1).

@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (bloques 1 y 2 de la v2 terminados).
+4. Red optimizada (v2) y validación — en curso (bloques 1 a 3 de la v2 terminados).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -286,7 +286,18 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
 - NTP en Packet Tracer (bloque 2): el 2960 funciona como cliente NTP. La sincronización
   se pierde y se recupera sola, sin cambios de configuración; comprobar
   `show ntp associations` antes de usar la hora como evidencia.
-- Siguiente: bloque 3 (capa 2: VLANs, trunks y puertos).
+- Bloque 3 (capa 2: VLANs, trunks y puertos): terminado y verificado
+  (`tests/v2-bloque3-capa2.txt`).
+- Limitación de Packet Tracer (bloque 3): `show spanning-tree` no muestra "Edge" en los
+  puertos con PortFast (aparecen como "P2p"). La evidencia de PortFast es
+  `show spanning-tree interface <puerto> detail` ("The port is in the portfast mode").
+  Ese detalle no muestra BPDU Guard: su evidencia es solo la running-config.
+- Limitación de Packet Tracer (bloque 3): `show spanning-tree` muestra los trunks también
+  en VLANs que no están permitidas. `show interfaces trunk` sí muestra solo las
+  permitidas.
+- Limitación de Packet Tracer (bloques 2 y 3): el campo de milisegundos de las marcas de
+  tiempo repite el minuto (por ejemplo, `04:37:04.3737`). Los milisegundos no son reales.
+- Siguiente: bloque 4 (STP y EtherChannel).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
@@ -304,3 +315,23 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
    comandos se pegaron en SW-HQ-1, que los rechazó todos porque no tiene esas
    interfaces, así que no hubo cambios. El mismo error fue inofensivo en el switch y
    peligroso en el router, donde los comandos se aceptaron y crearon subinterfaces.
+7. Comandos de un switch aplicados en otro (v2, bloque 3): al pegar en SW-HQ-2 los
+   comandos de apagado de los puertos sin uso de SW-HQ-1, el rango Fa0/12-24 apagó
+   Fa0/12, el puerto de PC-INV, que quedó sin red. Detectado con
+   `show interfaces status` y resuelto con `no shutdown`; port-security quedó con 0
+   violaciones y PC-INV volvió a llegar a su gateway. Misma lección que el incidente 6:
+   revisar el prompt antes de pegar. Las listas de puertos son distintas en cada equipo.
+   Escribir los comandos línea por línea evita perder líneas, pero no aplicarlos en el
+   equipo equivocado.
+
+Casi incidentes (sin efecto comprobado):
+- VLAN nativa 99 en vez de 999 en SW-HQ-1 Gi0/1 (v2, bloque 3, error de un dígito).
+  `show interfaces trunk` lo detectó y se corrigió antes de seguir. No hay evidencia de
+  su efecto, porque los pings se hicieron después de corregirlo. Efecto probable
+  (análisis, no comprobado): la VLAN 99 saldría sin etiqueta hacia R-HQ, cuya
+  subinterfaz .99 espera tramas etiquetadas, y la gestión de la central perdería su
+  gateway.
+
+Lección de método (bloque 3): al pegar bloques de comandos en la CLI de Packet Tracer
+se perdieron líneas (en el paso 3, el trunk de SW-HQ-1 no cambió al primer intento).
+Desde ese paso los comandos se escriben línea por línea, comprobando el prompt.
