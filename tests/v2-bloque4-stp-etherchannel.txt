@@ -1,0 +1,1722 @@
+Proyecto de portafolio. Comercial Horizonte S.A. es una empresa ficticia y la red es una
+simulación en Cisco Packet Tracer.
+
+Bloque 4 del plan de aplicación de la v2 (docs/plan-v2.md): STP y EtherChannel
+(D15 y D16)
+Archivo: diagrams/horizonte-v2.pkt
+Salidas obtenidas por Karla en Packet Tracer (CLI de SW-HQ-1, SW-HQ-2, SW-SUC y R-HQ, y
+Command Prompt de las PCs) y transcritas tal como las entregó. De algunas running-config
+se transcribe solo la parte que se revisó.
+
+Fecha de trabajo: 2026-11-13 (UTC, D24). Las salidas de este bloque no tienen mensajes
+de log con hora.
+
+Nota sobre la evidencia: durante el bloque, el portapapeles entregó varias veces una
+salida anterior en lugar de la nueva. Solo se transcriben las salidas que se pudieron
+identificar como nuevas. Los pings fallidos a los gateways entregados justo después de
+la primera corrección no se incluyen, porque pudieron ser una salida repetida.
+
+############################################################
+Configuración — 2026-11-13
+############################################################
+
+1. Rapid PVST+ en SW-HQ-1, SW-HQ-2 y SW-SUC (D16).
+   Después del cambio, Fa0/10 a Fa0/12 de SW-HQ-2 quedaron en "Desg BLK" y PC-ADM,
+   PC-VEN y PC-INV sin red. SW-HQ-1 y SW-SUC no se vieron afectados. Se corrigió con
+   shutdown y no shutdown en Fa0/10-12 de SW-HQ-2 (incidente 8).
+
+2. Prioridades de STP para las VLANs 1, 10, 20, 30, 40, 99, 998 y 999 (D16):
+   SW-HQ-1 24576 (raíz principal) y SW-HQ-2 28672 (secundaria). Antes se comprobó con
+   show vlan brief que las ocho VLANs existen en los dos switches.
+   Después del cambio, Fa0/10 a Fa0/12 de SW-HQ-2 volvieron a "Desg BLK". Misma
+   corrección (incidente 8, segunda vez).
+
+3. EtherChannel entre SW-HQ-1 y SW-HQ-2 (D15): Fa0/1 y Fa0/2 apagados en los dos
+   switches, channel-group 1 mode active (LACP), Port-channel 1 con trunk, nativa 999,
+   VLANs permitidas 10, 20, 40, 99 y 999, switchport nonegotiate y descripción
+   "ETHERCHANNEL a <equipo> Po1" (D25, agregada a conexiones.md). Después se encendieron
+   los cuatro puertos. Esta vez los puertos de acceso de SW-HQ-2 siguieron en FWD.
+
+4. Regresión: B1.1 a B1.3, B2.1 a B2.6 y B4.1 de docs/plan-pruebas-v2.md. Todas con
+   éxito. B2.2, B2.5 y B2.6 dan éxito porque la ACL de Invitados llega en el bloque 8.
+
+5. Prueba de redundancia (opcional): ping continuo de PC-ADM a SRV-TI apagando y
+   encendiendo Fa0/1 de SW-HQ-1. Sin pérdidas al apagarla; al menos 3 timeouts seguidos
+   al encenderla, recuperado sin intervención. Causa sin determinar.
+   Un primer intento (57 enviados, 55 recibidos) no se usa como evidencia, porque no se
+   registró el momento del apagado.
+
+6. Configuración guardada en SW-HQ-1, SW-HQ-2 y SW-SUC, y .pkt guardado. En SW-SUC,
+   show startup-config mostraba "spanning-tree mode pvst" (no se había guardado); la
+   running-config tenía rapid-pvst y se guardó. Los routers no se modificaron.
+
+############################################################
+1. Rapid PVST+ (después del paso 1)
+############################################################
+
+--- SW-HQ-2: antes de SW-04 (Fa0/2 en Altn BLK) y puertos de acceso en BLK ---
+
+El bloqueo de Fa0/2 se debe a la redundancia sin EtherChannel, no al modo de STP: es la
+evidencia del "antes" de SW-04 (en tests/v2-bloque3-capa2.txt aparece igual con PVST).
+
+SW-HQ-2#show spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/10           Desg BLK 19        128.10   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/11           Desg BLK 19        128.11   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg BLK 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    33767
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#
+
+############################################################
+2. Diagnóstico del incidente 8
+############################################################
+
+--- Pings de las PCs de SW-HQ-2 a su gateway, con los puertos en BLK ---
+(La salida no indica el equipo; según el procedimiento, cada PC hacia su gateway.)
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+C:\>
+
+--- SW-HQ-2: PortFast sigue activo, pero el puerto está en blocking ---
+
+SW-HQ-2#show spanning-tree interface fa0/10 detail
+
+
+Port 10 (FastEthernet0/10) of VLAN0010 is designated blocking
+  Port path cost 19, Port priority 128, Port Identifier 128.10
+  Designated root has priority 32778, address 000D.BD84.508B
+  Designated bridge has priority 32778, address 0030.F29A.CABC
+  Designated port id is 128.10, designated path cost 19
+  Timers: message age 16, forward delay 0, hold 0
+  Number of transitions to forwarding state: 1
+  The port is in the portfast mode
+  Link type is point-to-point by default
+
+--- SW-HQ-2: el enlace hacia SW-HQ-1 y R-HQ funciona (VLAN 99 por Fa0/1) ---
+
+SW-HQ-2#ping 10.10.99.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+SW-HQ-2#
+
+--- SW-HQ-1 y SW-SUC: rstp y puertos de acceso en FWD (no afectados) ---
+
+SW-HQ-1#show spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0030
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32798
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32798  (priority 32768 sys-id-ext 30)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    33767
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+SW-HQ-1#
+
+SW-SUC#show spanning-tree
+VLAN0050
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32818
+             Address     0040.0B32.7399
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32818  (priority 32768 sys-id-ext 50)
+             Address     0040.0B32.7399
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32867
+             Address     0040.0B32.7399
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     0040.0B32.7399
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    33767
+             Address     0040.0B32.7399
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     0040.0B32.7399
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+
+SW-SUC#
+
+############################################################
+3. Primera corrección (shutdown y no shutdown en SW-HQ-2 Fa0/10-12)
+############################################################
+
+SW-HQ-2#sho spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32778
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32788
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32808
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32808  (priority 32768 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg FWD 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    32867
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32867  (priority 32768 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    33767
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    33767  (priority 32768 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#
+
+SW-HQ-2# show port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+       Fa0/10        1          1                 0         Shutdown
+       Fa0/11        1          1                 0         Shutdown
+       Fa0/12        1          1                 0         Shutdown
+----------------------------------------------------------------------
+SW-HQ-2#
+
+--- PC-ADM a SRV-TI ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+--- PC-ADM a su gateway y tabla ARP ---
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\> arp -a
+  Internet Address      Physical Address      Type
+  10.10.10.1            0009.7c2d.c501        dynamic
+
+C:\>
+
+--- PC-VEN a su gateway ---
+
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time=2ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 2ms, Average = 0ms
+
+C:\>
+
+--- PC-INV a su gateway ---
+
+C:\> ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+############################################################
+4. Prioridades (paso 2)
+############################################################
+
+--- Comprobación previa: las VLANs de la lista existen en los dos switches ---
+
+SW-HQ-1#show vlan brief
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active
+10   ADMINISTRACION                   active
+20   VENTAS                           active
+30   TI                               active    Fa0/10, Fa0/11
+40   INVITADOS                        active
+99   GESTION                          active
+998  SIN-USO                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/12
+                                                Fa0/13, Fa0/14, Fa0/15, Fa0/16
+                                                Fa0/17, Fa0/18, Fa0/19, Fa0/20
+                                                Fa0/21, Fa0/22, Fa0/23, Fa0/24
+                                                Gig0/2
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+SW-HQ-1#
+
+SW-HQ-2#sh vlan brief
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active
+10   ADMINISTRACION                   active    Fa0/10
+20   VENTAS                           active    Fa0/11
+30   TI                               active
+40   INVITADOS                        active    Fa0/12
+99   GESTION                          active
+998  SIN-USO                          active    Fa0/3, Fa0/4, Fa0/5, Fa0/6
+                                                Fa0/7, Fa0/8, Fa0/9, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/1
+                                                Gig0/2
+999  NATIVA                           active
+1002 fddi-default                     active
+1003 token-ring-default               active
+1004 fddinet-default                  active
+1005 trnet-default                    active
+SW-HQ-2#
+
+--- Después de las prioridades: SW-HQ-1 raíz con 24576 ---
+
+SW-HQ-1#sh spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24586  (priority 24576 sys-id-ext 10)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24596  (priority 24576 sys-id-ext 20)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0030
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24606
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24606  (priority 24576 sys-id-ext 30)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24616  (priority 24576 sys-id-ext 40)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24675  (priority 24576 sys-id-ext 99)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    25575  (priority 24576 sys-id-ext 999)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/2            Desg FWD 19        128.2    P2p
+Fa0/1            Desg FWD 19        128.1    P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+SW-HQ-1#
+
+--- Después de las prioridades: SW-HQ-2 con 28672 y puertos de acceso en BLK (2.ª vez) ---
+
+SW-HQ-2#sh spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28682  (priority 28672 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/10           Desg BLK 19        128.10   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28692  (priority 28672 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/11           Desg BLK 19        128.11   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28712  (priority 28672 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg BLK 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28771  (priority 28672 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    29671  (priority 28672 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#
+
+--- Segunda corrección: SW-HQ-2 en FWD y port-security ---
+
+SW-HQ-2#sh spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28682  (priority 28672 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28692  (priority 28672 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28712  (priority 28672 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+Fa0/12           Desg FWD 19        128.12   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28771  (priority 28672 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             Cost        19
+             Port        1(FastEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    29671  (priority 28672 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/1            Root FWD 19        128.1    P2p
+Fa0/2            Altn BLK 19        128.2    P2p
+
+SW-HQ-2#sh port-security
+Secure Port MaxSecureAddr CurrentAddr SecurityViolation Security Action
+               (Count)       (Count)        (Count)
+--------------------------------------------------------------------
+       Fa0/10        1          1                 0         Shutdown
+       Fa0/11        1          1                 0         Shutdown
+       Fa0/12        1          1                 0         Shutdown
+----------------------------------------------------------------------
+SW-HQ-2#
+
+--- Pings de PC-ADM, PC-VEN y PC-INV a su gateway (después de la segunda corrección) ---
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+############################################################
+5. EtherChannel (paso 3)
+############################################################
+
+--- Antes: Fa0/1 y Fa0/2 idénticas en los dos extremos ---
+
+SW-HQ-1
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-2 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-2 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+
+SW-HQ-2
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-1 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-1 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+
+--- Running-config: STP (pasos 1 y 2) y Po1 (inicio de la sección, a medio configurar) ---
+
+SW-HQ-2#sh running-config
+Building configuration...
+
+Current configuration : 4569 bytes
+!
+version 15.0
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no service password-encryption
+!
+hostname SW-HQ-2
+!
+enable password cisco123
+!
+!
+!
+no ip domain-lookup
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 1,10,20,30,40,99,998-999 priority 28672
+!
+interface Port-channel1
+ description ETHERCHANNEL a SW-HQ-1 Po1
+!
+(salida recortada al transcribir)
+
+SW-HQ-1#sh run
+Building configuration...
+
+Current configuration : 4421 bytes
+!
+version 15.0
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no service password-encryption
+!
+hostname SW-HQ-1
+!
+enable password cisco123
+!
+!
+!
+no ip domain-lookup
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 1,10,20,30,40,99,998-999 priority 24576
+!
+interface Port-channel1
+ description ETHERCHANNEL a SW-HQ-2 Po1
+!
+(salida recortada al transcribir)
+
+--- Po1, Fa0/1 y Fa0/2 completos, con los puertos aún apagados ---
+
+SW-HQ-1
+interface Port-channel1
+ description ETHERCHANNEL a SW-HQ-2 Po1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-2 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+ shutdown
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-2 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+ shutdown
+
+SW-HQ-2
+interface Port-channel1
+ description ETHERCHANNEL a SW-HQ-1 Po1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-1 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+ shutdown
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-1 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+ shutdown
+!
+
+--- Después de encender los cuatro puertos ---
+
+SW-HQ-1#show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-1#
+
+SW-HQ-1#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Po1         on           802.1q         trunking      999
+Gig0/1      on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Po1         10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans allowed and active in management domain
+Po1         10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Po1         10,20,40,99,999
+Gig0/1      10,20,30,40,99,999
+
+SW-HQ-1#
+
+SW-HQ-2#show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-2#
+
+SW-HQ-2#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Po1         on           802.1q         trunking      999
+
+Port        Vlans allowed on trunk
+Po1         10,20,40,99,999
+
+Port        Vlans allowed and active in management domain
+Po1         10,20,40,99,999
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Po1         10,20,40,99,999
+
+SW-HQ-2#
+
+--- SW-HQ-2: después de SW-04 (Po1 Root FWD, ningún BLK; puertos de acceso en FWD) ---
+
+SW-HQ-2#show spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             Cost        12
+             Port        28(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28682  (priority 28672 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Po1              Root FWD 12        128.28   P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             Cost        12
+             Port        28(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28692  (priority 28672 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/11           Desg FWD 19        128.11   P2p
+Po1              Root FWD 12        128.28   P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             Cost        12
+             Port        28(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28712  (priority 28672 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/12           Desg FWD 19        128.12   P2p
+Po1              Root FWD 12        128.28   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             Cost        12
+             Port        28(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28771  (priority 28672 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Po1              Root FWD 12        128.28   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             Cost        12
+             Port        28(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    29671  (priority 28672 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Po1              Root FWD 12        128.28   P2p
+
+SW-HQ-2#
+
+--- SW-HQ-1: raíz, Po1 Desg FWD. En la VLAN 30 no aparece el Po1 (no permitida) ---
+
+SW-HQ-1#show spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24586  (priority 24576 sys-id-ext 10)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+Po1              Desg FWD 12        128.28   P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24596  (priority 24576 sys-id-ext 20)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+Po1              Desg FWD 12        128.28   P2p
+
+VLAN0030
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24606
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24606  (priority 24576 sys-id-ext 30)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Fa0/11           Desg FWD 19        128.11   P2p
+Gi0/1            Desg FWD 4         128.25   P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24616  (priority 24576 sys-id-ext 40)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+Po1              Desg FWD 12        128.28   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24675  (priority 24576 sys-id-ext 99)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+Po1              Desg FWD 12        128.28   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             This bridge is the root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    25575  (priority 24576 sys-id-ext 999)
+             Address     000D.BD84.508B
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi0/1            Desg FWD 4         128.25   P2p
+Po1              Desg FWD 12        128.28   P2p
+
+SW-HQ-1#
+
+############################################################
+6. Regresión (docs/plan-pruebas-v2.md)
+############################################################
+
+| Prueba | Origen | Destino     | Esperado en el bloque 4 | Resultado |
+|--------|--------|-------------|-------------------------|-----------|
+| B1.1   | PC-ADM | 10.10.10.1  | Éxito, TTL 255          | 4/4, TTL 255 |
+| B2.1   | PC-ADM | 10.10.20.21 | Éxito, TTL 127          | 4/4, TTL 127 |
+| B2.3   | PC-ADM | 10.10.30.10 | Éxito, TTL 127          | 4/4, TTL 127 |
+| B1.2   | PC-VEN | 10.10.20.1  | Éxito, TTL 255          | 4/4, TTL 255 |
+| B2.2   | PC-VEN | 10.10.40.21 | Éxito (✖ desde el bloque 8) | 4/4, TTL 127 |
+| B2.4   | PC-VEN | 10.10.30.10 | Éxito, TTL 127          | 4/4, TTL 127 |
+| B1.3   | PC-INV | 10.10.40.1  | Éxito, TTL 255          | 4/4, TTL 255 |
+| B2.5   | PC-INV | 10.10.30.10 | Éxito (✖ desde el bloque 8) | 4/4, TTL 127 |
+| B2.6   | PC-INV | 10.10.10.21 | Éxito (✖ desde el bloque 8) | 4/4, TTL 127 |
+| B4.1   | R-HQ   | 10.10.99.11 | Éxito                   | 5/5 |
+| B4.1   | R-HQ   | 10.10.99.12 | Éxito                   | 5/5 |
+
+--- PC-ADM ---
+
+B1.1
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time=2ms TTL=255
+Reply from 10.10.10.1: bytes=32 time=5ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 5ms, Average = 1ms
+
+C:\>
+
+B2.1
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time=9ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 9ms, Average = 2ms
+
+C:\>
+
+B2.3
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+--- PC-VEN ---
+
+B1.2
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time=8ms TTL=255
+Reply from 10.10.20.1: bytes=32 time=8ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 8ms, Average = 4ms
+
+C:\>
+
+B2.2
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time=1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.40.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+C:\>
+
+B2.4
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+--- PC-INV ---
+
+B1.3
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time=4ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 4ms, Average = 1ms
+
+C:\>
+
+B2.5
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+C:\>
+
+B2.6
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time=7ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 7ms, Average = 1ms
+
+C:\>
+
+--- R-HQ ---
+
+B4.1
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+R-HQ#
+
+############################################################
+7. Prueba de redundancia (opcional)
+############################################################
+
+Ping continuo de PC-ADM a SRV-TI. Según Karla, las 15 respuestas continuaron mientras
+Fa0/1 de SW-HQ-1 estaba apagada, y los timeouts empezaron al volver a encenderla. Se
+interrumpió con Ctrl+C mientras fallaba; la cuarta pérdida es probablemente el paquete
+en curso al interrumpir (interpretación). Un ping posterior desde PC-ADM dio 100 %
+(dato de Karla, sin salida transcrita).
+
+C:\>ping -t 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 19, Received = 15, Lost = 4 (22% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+Control-C
+^C
+
+--- Después: Fa0/1 de vuelta en el Po1 en los dos switches ---
+
+SW-HQ-1#show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-1#
+
+SW-HQ-2#show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-2#
+
+############################################################
+Incidentes y observaciones del bloque
+############################################################
+
+Incidente 8 (CLAUDE.md): puertos de acceso de SW-HQ-2 en "Desg BLK" después del paso 1 y
+otra vez después del paso 2, con PortFast activo y las tres PCs sin red. Solo en
+SW-HQ-2, el único switch que no es raíz. Resuelto las dos veces con shutdown y no
+shutdown en Fa0/10-12, sin violaciones de port-security. No se repitió en el paso 3.
+Hipótesis no confirmada y debilitada: la sincronización de RSTP del switch no raíz
+bloquea los puertos de acceso porque Packet Tracer no los trata como edge.
+
+Observación: corte transitorio al reincorporar Fa0/1 al Po1 (sección 7). Causa sin
+determinar.
+
+Observación: con Rapid PVST+, show spanning-tree muestra los trunks solo en las VLANs
+permitidas (con PVST, en el bloque 3, aparecían también en las no permitidas).

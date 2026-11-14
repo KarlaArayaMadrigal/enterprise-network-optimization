@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (bloques 1 a 3 de la v2 terminados).
+4. Red optimizada (v2) y validación — en curso (bloques 1 a 4 de la v2 terminados).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -294,10 +294,16 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   Ese detalle no muestra BPDU Guard: su evidencia es solo la running-config.
 - Limitación de Packet Tracer (bloque 3): `show spanning-tree` muestra los trunks también
   en VLANs que no están permitidas. `show interfaces trunk` sí muestra solo las
-  permitidas.
+  permitidas. Con Rapid PVST+ (bloque 4) ya no ocurre: los trunks aparecen solo en las
+  VLANs permitidas.
 - Limitación de Packet Tracer (bloques 2 y 3): el campo de milisegundos de las marcas de
   tiempo repite el minuto (por ejemplo, `04:37:04.3737`). Los milisegundos no son reales.
-- Siguiente: bloque 4 (STP y EtherChannel).
+- Bloque 4 (STP y EtherChannel): terminado y verificado
+  (`tests/v2-bloque4-stp-etherchannel.txt`).
+- Observación (bloque 4): en la prueba de redundancia, al apagar Fa0/1 de SW-HQ-1 el ping
+  continuo de PC-ADM a SRV-TI no perdió paquetes; al volver a encenderla hubo al menos 3
+  timeouts seguidos y se recuperó solo. Causa sin determinar.
+- Siguiente: bloque 5 (DHCP snooping).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
@@ -323,6 +329,16 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
    revisar el prompt antes de pegar. Las listas de puertos son distintas en cada equipo.
    Escribir los comandos línea por línea evita perder líneas, pero no aplicarlos en el
    equipo equivocado.
+8. Puertos de acceso bloqueados por STP (v2, bloque 4): después de pasar a Rapid PVST+, y
+   otra vez después de cambiar las prioridades, Fa0/10 a Fa0/12 de SW-HQ-2 (PC-ADM,
+   PC-VEN y PC-INV) quedaron en "Desg BLK" con PortFast activo, y las tres PCs sin red.
+   Solo pasó en SW-HQ-2, el único switch que no es raíz; los puertos de acceso de SW-HQ-1
+   y SW-SUC siguieron en FWD. Se resolvió las dos veces con shutdown y no shutdown en los
+   tres puertos (port-security sin violaciones). No se repitió al subir el Po1.
+   Hipótesis no confirmada, y debilitada porque no se repitió con el Po1: la
+   sincronización de RSTP del switch no raíz bloquea los puertos de acceso porque Packet
+   Tracer no los trata como edge. Lección: después de cualquier cambio de STP, revisar
+   los puertos de acceso del switch no raíz con show spanning-tree y un ping.
 
 Casi incidentes (sin efecto comprobado):
 - VLAN nativa 99 en vez de 999 en SW-HQ-1 Gi0/1 (v2, bloque 3, error de un dígito).

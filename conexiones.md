@@ -33,6 +33,8 @@ Puertos: G0/0/0 a G0/1
 Enlaces entre SW-HQ-1 y SW-HQ-2 (2 cables, serán EtherChannel en la v2):
 Cable 1: Fa0/1 a Fa0/1
 Cable 2: Fa0/2 a Fa0/2
+EtherChannel (v2): Port-channel 1 a Port-channel 1, LACP activo en los dos extremos.
+Descripción: "ETHERCHANNEL a <equipo> Po1".
 
 SW-HQ-2 a PCs:
 PC-ADM: Fa0/10 a Fa0

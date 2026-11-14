@@ -209,6 +209,7 @@ reactivan desde Services. Los archivos de ejemplo borrados solo se recuperan des
 | `show spanning-tree` en SW-HQ-1 | Protocolo rstp, "This bridge is the root" con prioridad 24576 más el número de VLAN |
 | `show spanning-tree` en SW-HQ-2 | Prioridad 28672 más el número de VLAN, Po1 como puerto raíz y **ningún puerto en BLK**. En la v1, Fa0/2 estaba en Altn BLK: es la evidencia del antes y el después de SW-04 |
 | `show interfaces trunk` | Po1 aparece como trunk, con la nativa 999 |
+| Después de los pasos 1 y 2, en SW-HQ-2 | Fa0/10 a Fa0/12 en FWD y ping de cada PC a su gateway (incidente 8) |
 | Repetir B1.1 a B1.3, B2 y B4.1 | Éxito |
 | Opcional, prueba de redundancia: ping continuo de PC-ADM a SRV-TI y apagar Fa0/1 en SW-HQ-1 | El ping sigue, con como mucho una pérdida. Después, volver a encender Fa0/1 |
 
