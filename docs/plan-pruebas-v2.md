@@ -47,7 +47,9 @@ A5 solo confirma la configuración estática de PC-TI.
 
 **Comprobación en los equipos:**
 - `show ip dhcp binding` en R-HQ (tres asignaciones) y en R-SUC (una).
-- `show ip dhcp snooping binding` en SW-HQ-2 y SW-SUC, si Packet Tracer lo acepta.
+- `show ip dhcp snooping binding` en SW-SUC (una entrada, la de PC-SUC). SW-HQ-2 queda
+  sin DHCP snooping por la diferencia con la D19 del bloque 5 (ver `CLAUDE.md`), así que
+  no se espera binding en ese switch.
 
 ## Fase B — Conectividad
 
@@ -190,7 +192,7 @@ el README.
 | SW-02 | `show interfaces trunk` y `show interfaces <trunk> switchport` | Nativa 999, VLANs permitidas de la D14, negociación desactivada |
 | SW-03 | `show spanning-tree` (puertos "P2p Edge"), `show port-security` y D4.1 | PortFast, BPDU Guard y port-security en todos los puertos de acceso; violación demostrada |
 | SW-04 | `show spanning-tree`, `show etherchannel summary` y D4.2 | rstp, SW-HQ-1 raíz por prioridad, Po1 (SU) con LACP, ningún puerto en BLK; redundancia demostrada |
-| SW-05 | `show ip dhcp snooping` | Activo en las VLANs de la D19, opción 82 desactivada, solo el puerto hacia el router como confiable |
+| SW-05 | `show ip dhcp snooping` en SW-SUC y SW-HQ-2 | SW-SUC: activo en la VLAN 50, opción 82 desactivada y solo Gi0/1 como confiable. SW-HQ-2: desactivado, sin VLANs (diferencia con la D19 del bloque 5, ver `CLAUDE.md`); hallazgo corregido solo en la sucursal |
 | SW-06 | `show cdp interface` en SW-HQ-2 Fa0/12 | El puerto no aparece |
 | RT-01 | `show ip protocols` | Pasivas por defecto, salvo G0/0/1 |
 | RT-02 | `show ip ospf interface G0/0/1` y `show ip ospf neighbor` | Autenticación message-digest y vecino en FULL |

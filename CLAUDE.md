@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (bloques 1 a 4 de la v2 terminados).
+4. Red optimizada (v2) y validación — en curso (bloques 1 a 5 de la v2 terminados).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -266,7 +266,7 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   liberar y renovar la IP de PC-INV y repetir la A3.
 - Port-security: si se cambia una PC, el puerto queda en err-disabled.
 
-**Por comprobar en Packet Tracer:** scrypt en las contraseñas, el Port-channel como puerto de confianza de DHCP snooping, SHA en OSPF (se usa MD5) y
+**Por comprobar en Packet Tracer:** scrypt en las contraseñas, SHA en OSPF (se usa MD5) y
 si sube en `show access-lists` el contador de una ACL usada como `access-class` (si no
 sube, se documenta como limitación del simulador).
 
@@ -300,10 +300,25 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   tiempo repite el minuto (por ejemplo, `04:37:04.3737`). Los milisegundos no son reales.
 - Bloque 4 (STP y EtherChannel): terminado y verificado
   (`tests/v2-bloque4-stp-etherchannel.txt`).
+- Limitación de Packet Tracer (bloque 4): `show startup-config` no acepta el filtro `|`.
+  Para comprobar que se guardó, usar la salida de `copy running-config startup-config`
+  o revisar `show startup-config` completa.
 - Observación (bloque 4): en la prueba de redundancia, al apagar Fa0/1 de SW-HQ-1 el ping
   continuo de PC-ADM a SRV-TI no perdió paquetes; al volver a encenderla hubo al menos 3
   timeouts seguidos y se recuperó solo. Causa sin determinar.
-- Siguiente: bloque 5 (DHCP snooping).
+- Bloque 5 (DHCP snooping): terminado y verificado (`tests/v2-bloque5-dhcp-snooping.txt`
+  y `tests/v2-bloque5-simulacion-dhcp.txt`).
+- Diferencia con la D19 (bloque 5): SW-HQ-2 queda sin DHCP snooping. El Port-channel 1
+  no acepta `ip dhcp snooping trust`, y con la confianza en sus miembros (Fa0/1 y Fa0/2)
+  SW-HQ-2 descarta el Offer de R-HQ, así que las PCs de la central no obtienen IP. En
+  SW-SUC funciona como dice el diseño. Configuración prevista para SW-HQ-2 en un equipo
+  real: confianza en el Po1, opción 82 desactivada y VLANs 10, 20 y 40.
+- Limitación de Packet Tracer (bloque 5): `show ip dhcp snooping` sigue mostrando
+  interfaces que tuvieron snooping aunque ya no tengan configuración. El lease del
+  binding del snooping aparece como 0.
+- Observación (bloque 5): R-HQ entregó a PC-ADM IPs distintas en cada intento (.32, .25
+  y .24) aunque la .21 a la .23 estaban libres. Causa sin determinar.
+- Siguiente: bloque 6 (OSPF).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 

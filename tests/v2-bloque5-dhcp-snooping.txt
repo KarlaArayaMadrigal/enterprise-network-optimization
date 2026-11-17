@@ -1,0 +1,720 @@
+Proyecto de portafolio. Comercial Horizonte S.A. es una empresa ficticia y la red es una
+simulación en Cisco Packet Tracer.
+
+Bloque 5 del plan de aplicación de la v2 (docs/plan-v2.md): DHCP snooping (D19)
+Archivo: diagrams/horizonte-v2.pkt
+Salidas obtenidas por Karla en Packet Tracer (CLI de SW-HQ-2, SW-SUC, R-HQ y R-SUC, y
+Command Prompt de las PCs) y transcritas tal como las entregó.
+Diagnóstico de la central en modo Simulación: tests/v2-bloque5-simulacion-dhcp.txt.
+
+Fechas de trabajo: 2026-11-16 y 2026-11-17 (UTC, D24). Las salidas de este archivo son
+del 2026-11-17. Las del 2026-11-16 (configuración del snooping en SW-HQ-2) se resumen en
+docs/uso-de-ia.md.
+
+############################################################
+Resumen
+############################################################
+
+1. SW-HQ-2 (2026-11-16): el Port-channel 1 rechazó "ip dhcp snooping trust". Karla
+   eligió poner la confianza en Fa0/1 y Fa0/2 (miembros del Po1). Con el snooping
+   activo, PC-ADM no obtuvo IP: SW-HQ-2 descarta el Offer recibido por Fa0/2 ("on an
+   trusted port"). Reproducido el 2026-11-17.
+2. Control parcial: con solo "no ip dhcp snooping", PC-ADM obtuvo 10.10.10.25.
+3. Decisión de Karla (opción a): SW-HQ-2 sin snooping. Se quitó toda la configuración
+   (running-config filtrada por "snooping" vacía, startup-config revisada completa).
+   Po1(SU) con Fa0/1(P) y Fa0/2(P) después del cambio.
+4. Control formal: PC-ADM 10.10.10.24, PC-VEN 10.10.20.21, PC-INV 10.10.40.21, con
+   gateway, DNS 10.10.30.10 y sufijo horizonte.internal. R-HQ: una asignación por PC,
+   sin conflictos.
+5. SW-SUC: confianza en Gi0/1, opción 82 desactivada, VLAN 50 y activación global, en
+   ese orden. Sin errores. PC-SUC renovó 10.20.50.21. Binding del snooping en Fa0/10,
+   VLAN 50, igual que R-SUC. Configuración guardada.
+6. Fase A completa (A1 a A5): éxito. A5: PC-TI con IP fija 10.10.30.11, sin sufijo
+   DNS (no usa DHCP).
+
+Conclusión de la comparación: el problema se acota a la combinación de DHCP snooping y
+EtherChannel en Packet Tracer. Con la confianza en un puerto físico (SW-SUC, Gi0/1) el
+Offer se reenvía; con la confianza en los miembros de un EtherChannel (SW-HQ-2, Fa0/1 y
+Fa0/2) se descarta. El mecanismo sigue sin determinar. Capturas de los dos casos en
+tests/v2-bloque5-simulacion-dhcp.txt.
+
+Observaciones:
+- PC-ADM recibió .32, .25 y .24 en intentos sucesivos, aunque .21 a .23 están libres
+  y sin conflictos. Causa sin determinar.
+- show ip dhcp snooping en SW-HQ-2 sigue mostrando Fa0/1, Fa0/2, Fa0/10 y Po1 sin
+  configuración de snooping; en SW-SUC, antes de configurarlo, la lista sale vacía.
+  La presencia de Port-channel1 en esa tabla es coherente con la hipótesis de que el
+  simulador evalúa el snooping en el Po1. Es un indicio, no una prueba.
+- Lease(sec) 0 en el binding del snooping y "--" en R-SUC.
+- Al quitar la configuración, la opción 82 vuelve al valor por defecto (activada).
+
+############################################################
+1. SW-HQ-2 después de quitar el snooping (opción a)
+############################################################
+
+SW-HQ-2#show running-config | include snooping
+SW-HQ-2#show ip dhcp snooping
+Switch DHCP snooping is disabled
+DHCP snooping is configured on following VLANs:
+none
+Insertion of option 82 is enabled
+Option 82 on untrusted port is not allowed
+Verification of hwaddr field is enabled
+Interface                  Trusted    Rate limit (pps)
+-----------------------    -------    ----------------
+FastEthernet0/1            no         unlimited
+FastEthernet0/2            no         unlimited
+FastEthernet0/10           no         unlimited
+Port-channel1              no         unlimited
+SW-HQ-2#
+
+SW-HQ-2#show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-2#
+
+--- PC-ADM: ping al gateway (con la IP 10.10.10.25, antes de renovar) ---
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+--- SW-HQ-2: startup-config (show startup-config no acepta el filtro |; revisada
+completa, sin líneas de snooping) ---
+
+SW-HQ-2#show startup-config
+Using 4755 bytes
+!
+version 15.0
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no service password-encryption
+!
+hostname SW-HQ-2
+!
+enable password cisco123
+!
+!
+!
+no ip domain-lookup
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+spanning-tree vlan 1,10,20,30,40,99,998-999 priority 28672
+!
+interface Port-channel1
+ description ETHERCHANNEL a SW-HQ-1 Po1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+!
+interface FastEthernet0/1
+ description TRUNK a SW-HQ-1 Fa0/1
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+!
+interface FastEthernet0/2
+ description TRUNK a SW-HQ-1 Fa0/2
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,40,99,999
+ switchport mode trunk
+ switchport nonegotiate
+ channel-group 1 mode active
+!
+interface FastEthernet0/3
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/4
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/5
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/6
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/7
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/8
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/9
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/10
+ description ACCESO a PC-ADM Fa0
+ switchport access vlan 10
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0030.A3ED.5E46
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/11
+ description ACCESO a PC-VEN Fa0
+ switchport access vlan 20
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0010.1172.A4CD
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/12
+ description ACCESO a PC-INV Fa0
+ switchport access vlan 40
+ switchport mode access
+ switchport nonegotiate
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0001.63CA.DB04
+ no cdp enable
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface FastEthernet0/13
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/14
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/15
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/16
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/17
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/18
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/19
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/20
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/21
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/22
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/23
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface FastEthernet0/24
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface GigabitEthernet0/1
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface GigabitEthernet0/2
+ description SIN USO
+ switchport access vlan 998
+ switchport mode access
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+interface Vlan99
+ description GESTION
+ ip address 10.10.99.12 255.255.255.0
+!
+ip default-gateway 10.10.99.1
+!
+banner motd ^C Acceso restringido a personal autorizado. Toda actividad puede ser registrada. ^C
+logging trap debugging
+logging 10.10.30.10
+!
+!
+!
+line con 0
+!
+line vty 0 4
+ password cisco123
+ login
+ transport input telnet
+line vty 5 15
+ login
+!
+!
+!
+ntp server 10.10.30.10
+!
+end
+
+
+SW-HQ-2#
+
+Nota: enable password, Telnet y la falta de service password-encryption corresponden al
+bloque 7 (D9 a D11), todavía no aplicado.
+
+############################################################
+2. Prueba de control en la central (A1 a A3), SW-HQ-2 sin snooping
+############################################################
+
+--- PC-ADM (A1) ---
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.10.24
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.10.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.A3ED.5E46
+   Link-local IPv6 Address.........: FE80::230:A3FF:FEED:5E46
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.10.24
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.10.1
+   DHCP Servers....................: 10.10.10.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-62-AA-B8-86-00-30-A3-ED-5E-46
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0001.4343.5EB1
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-62-AA-B8-86-00-30-A3-ED-5E-46
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+--- PC-VEN (A2) ---
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.20.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.20.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0010.1172.A4CD
+   Link-local IPv6 Address.........: FE80::210:11FF:FE72:A4CD
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.20.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.20.1
+   DHCP Servers....................: 10.10.20.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-63-DE-73-00-00-10-11-72-A4-CD
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 00E0.F97C.5951
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-63-DE-73-00-00-10-11-72-A4-CD
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+--- PC-INV (A3) ---
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.40.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.40.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0001.63CA.DB04
+   Link-local IPv6 Address.........: FE80::201:63FF:FECA:DB04
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.40.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.40.1
+   DHCP Servers....................: 10.10.40.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-3B-78-0C-62-00-01-63-CA-DB-04
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0040.0B63.CE14
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-3B-78-0C-62-00-01-63-CA-DB-04
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+--- R-HQ ---
+
+R-HQ#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.10.10.24      0030.A3ED.5E46           --                     Automatic
+10.10.20.21      0010.1172.A4CD           --                     Automatic
+10.10.40.21      0001.63CA.DB04           --                     Automatic
+R-HQ#
+R-HQ#show ip dhcp conflict
+IP address        Detection method   Detection time          VRF
+R-HQ#
+
+############################################################
+3. SW-SUC: antes
+############################################################
+
+SW-SUC#show ip dhcp snooping
+Switch DHCP snooping is disabled
+DHCP snooping is configured on following VLANs:
+none
+Insertion of option 82 is enabled
+Option 82 on untrusted port is not allowed
+Verification of hwaddr field is enabled
+Interface                  Trusted    Rate limit (pps)
+-----------------------    -------    ----------------
+SW-SUC#
+
+--- PC-SUC antes ---
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.F2CE.822A
+   Link-local IPv6 Address.........: FE80::230:F2FF:FECE:822A
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.20.50.1
+   DHCP Servers....................: 10.20.50.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0000.0C24.A029
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+############################################################
+4. SW-SUC: después (confianza en Gi0/1, opción 82 desactivada, VLAN 50, activación)
+############################################################
+
+SW-SUC#show ip dhcp snooping
+Switch DHCP snooping is enabled
+DHCP snooping is configured on following VLANs:
+50
+Insertion of option 82 is disabled
+Option 82 on untrusted port is not allowed
+Verification of hwaddr field is enabled
+Interface                  Trusted    Rate limit (pps)
+-----------------------    -------    ----------------
+GigabitEthernet0/1         yes        unlimited
+SW-SUC#
+
+--- PC-SUC (A4) ---
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.20.50.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.F2CE.822A
+   Link-local IPv6 Address.........: FE80::230:F2FF:FECE:822A
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.20.50.1
+   DHCP Servers....................: 10.20.50.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0000.0C24.A029
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+--- Bindings ---
+
+SW-SUC#show ip dhcp snooping binding
+MacAddress          IpAddress        Lease(sec)  Type           VLAN  Interface
+------------------  ---------------  ----------  -------------  ----  -----------------
+00:30:F2:CE:82:2A   10.20.50.21      0           dhcp-snooping  50    FastEthernet0/10
+Total number of bindings: 1
+SW-SUC#
+
+R-SUC#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.20.50.21      0030.F2CE.822A           --                     Automatic
+R-SUC#
+
+--- Guardado ---
+
+SW-SUC#copy running-config startup-config
+Destination filename [startup-config]?
+Building configuration...
+[OK]
+SW-SUC#
+
+############################################################
+5. PC-TI (A5)
+############################################################
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..:
+   Physical Address................: 0001.6474.2A88
+   Link-local IPv6 Address.........: FE80::201:64FF:FE74:2A88
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.30.11
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.30.1
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-84-45-B2-98-00-01-64-74-2A-88
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..:
+   Physical Address................: 0090.21D2.021E
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-84-45-B2-98-00-01-64-74-2A-88
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+
+C:\>
+
+Sufijo DNS vacío: lo entrega el pool DHCP y PC-TI tiene IP fija. Usar nombres completos
+(srv-ti.horizonte.internal) en las pruebas desde PC-TI.

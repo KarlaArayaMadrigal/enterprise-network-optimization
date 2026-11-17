@@ -1,0 +1,35 @@
+Modo Simulación, filtro DHCP. PDU en SW-HQ-2 (Source: R-HQ, Destination: Broadcast).
+In Layers, Layer 2 (Dot1q Header 0009.7C2D.C501 >> FFFF.FFFF.FFFF):
+
+1. The frame is neither LACP or a PAgP type.
+2. Receiving on the port channel FastEthernet0/2.
+3. The frame source MAC address was found in the MAC table of Switch.
+4. The frame destination MAC address is broadcast. The Switch processes the frame.
+5. DHCP Snooping: The switch receives a DHCP OFFER message from a DHCP server on an trusted port. The device drops the packet.
+
+Repetición 2026-11-17 (misma configuración, snooping global reactivado):
+mismo resultado. Eventos: Offer R-HQ → SW-HQ-1 a 1.517 s, SW-HQ-1 → SW-HQ-2 a
+1.518 s (captura hasta 1.518 s). Dos Discover de PC-ADM y un solo Offer.
+Capturas: v2-bloque5-simulacion-eventos.png, -offer-capa1.png, -offer-capa2.png.
+Control parcial: con "no ip dhcp snooping" (el resto sin cambios), PC-ADM obtuvo
+10.10.10.25.
+
+Capturas de contraste (2026-11-17):
+- v2-bloque5-simulacion-hq-sin-snooping-eventos.png: central, SW-HQ-2 ya sin snooping.
+  El Offer llega a PC-ADM a 1.512 s ("At Device: PC-ADM", capa 7 "DHCP Packet Server:
+  10.10.10.1", UDP 67 → 68, recibido por FastEthernet0). PC-ADM recibe el Offer y envía
+  el Request (1.513 s). La lista llega hasta 1.513 s: el ACK no aparece en la captura.
+  La renovación completa está demostrada en Realtime (tests/v2-bloque5-dhcp-snooping.txt).
+- v2-bloque5-simulacion-suc-eventos.png: PC-SUC con el snooping activo en SW-SUC. DORA
+  completo: Offer R-SUC → SW-SUC a 1.510 s y SW-SUC → PC-SUC a 1.511 s; Request y ACK
+  hasta 1.515 s.
+- v2-bloque5-simulacion-suc-offer-capa2.png: el Offer en SW-SUC (fila de 1.510 s,
+  "At Device: SW-SUC"). Entra por Gi0/1 con encabezado Dot1q y sale por Fa0/10 como
+  Ethernet II; Out Layers no está vacía. Cuatro pasos en la capa 2, sin mención al
+  DHCP snooping ni a un descarte. Parece que Packet Tracer solo nombra el snooping
+  cuando descarta.
+
+Comparación: el mismo Offer, con el mismo encabezado Dot1q de entrada, se reenvía en
+SW-SUC (confianza en un puerto físico, Gi0/1) y se descarta en SW-HQ-2 (confianza en
+los miembros del EtherChannel, Fa0/1 y Fa0/2; v2-bloque5-simulacion-offer-capa2.png).
+El mecanismo sigue sin determinar.
