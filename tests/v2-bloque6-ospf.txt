@@ -1,0 +1,488 @@
+Proyecto de portafolio. Comercial Horizonte S.A. es una empresa ficticia y la red es una
+simulación en Cisco Packet Tracer.
+
+Bloque 6 del plan de aplicación de la v2 (docs/plan-v2.md): OSPF (D21 y D22)
+Archivo: diagrams/horizonte-v2.pkt
+Salidas obtenidas por Karla en Packet Tracer (CLI de R-HQ y R-SUC, y Command Prompt de
+las PCs) y transcritas tal como las entregó.
+
+Fecha de trabajo: 2026-11-19 (UTC, D24). Las salidas de este bloque no tienen mensajes
+de log con hora.
+
+Nota sobre la evidencia: ninguna salida de este bloque muestra la clave de OSPF. La
+running-config, que la contiene en tipo 7, no se transcribe aquí.
+
+############################################################
+Configuración — 2026-11-19
+############################################################
+
+1. Pasivo por defecto en R-HQ (D21): en router ospf 1, passive-interface default y
+   no passive-interface GigabitEthernet0/0/1, escritos seguidos. Las sentencias network
+   no se modificaron.
+
+2. Pasivo por defecto en R-SUC (D21), igual que en R-HQ.
+
+3. Autenticación MD5 en G0/0/1 (D22): ip ospf authentication message-digest e
+   ip ospf message-digest-key 1 md5, con la misma clave, primero en R-HQ y enseguida en
+   R-SUC.
+
+4. Verificación: subinterfaces pasivas, rutas OSPF y B3 completa
+   (docs/plan-pruebas-v2.md). Todas con éxito. B3.7 da éxito porque la ACL de Invitados
+   llega en el bloque 8.
+
+5. Configuración guardada en R-HQ y R-SUC (copy running-config startup-config) y .pkt
+   guardado.
+
+Observaciones
+- Cambio de DR en el enlace WAN. En el paso 0, R-SUC era DR y R-HQ BDR. Después del
+  paso 2, R-HQ era DR; después del paso 3, R-SUC volvió a ser DR. La elección del DR no
+  es preventiva: solo cambia si la vecindad se pierde. Interpretación (deducida de las
+  salidas, no comprobada con mensajes de log): la vecindad se reinició brevemente en el
+  paso 2 (G0/0/1 de R-SUC pasiva un momento) y en el paso 3 (autenticación activa en un
+  solo router hasta configurar el otro), y se recuperó sola las dos veces, como anticipa
+  el plan. Los "Last Update" de 00:00:28 y la antigüedad de las rutas OSPF (unos 9
+  minutos en el paso 4) son coherentes con esos reinicios.
+- Tipo de red BROADCAST en G0/0/1: por eso hay elección de DR y BDR en un enlace punto
+  a punto. El diseño no pide cambiarlo.
+- Subinterfaces pasivas en estado WAITING, sin DR, más de 9 minutos después del cambio.
+  En IOS real se espera que una interfaz pasiva de tipo broadcast pase a DR al vencer
+  el temporizador de espera (40 segundos). Posible comportamiento de Packet Tracer, sin
+  confirmar. No afecta: las redes se siguen anunciando (rutas O en el otro router).
+- B3.4: en la primera ejecución se perdió el primer paquete (3 de 4); la segunda dio
+  4 de 4. Causa probable: resolución ARP en el camino. Se usa la segunda como evidencia.
+- Error de método en B3.5 a B3.7: el primer intento se hizo hacia 10.10.50.21 en lugar
+  de 10.20.50.21 (IP de PC-SUC). El origen de las respuestas lo delató: "Destination
+  host unreachable" desde el gateway de cada PC (R-HQ), que no tiene ruta hacia
+  10.10.50.0. Esas salidas no se incluyen. Se confirmó la IP de PC-SUC con ipconfig y se
+  repitieron las tres pruebas.
+
+############################################################
+Paso 0 — Antes del bloque
+############################################################
+
+--- R-HQ ---
+R-HQ#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   FULL/DR         00:00:39    10.255.255.2    GigabitEthernet0/0/1
+R-HQ#show ip protocols
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 1.1.1.1
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    10.10.10.0 0.0.0.255 area 0
+    10.10.20.0 0.0.0.255 area 0
+    10.10.30.0 0.0.0.255 area 0
+    10.10.40.0 0.0.0.255 area 0
+    10.10.99.0 0.0.0.255 area 0
+    10.255.255.0 0.0.0.3 area 0
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    1.1.1.1              110      00:03:42
+    2.2.2.2              110      00:03:42
+  Distance: (default is 110)
+
+R-HQ#
+
+--- R-SUC ---
+R-SUC#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           1   FULL/BDR        00:00:33    10.255.255.1    GigabitEthernet0/0/1
+
+R-SUC#show ip protocols
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 2.2.2.2
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    10.20.50.0 0.0.0.255 area 0
+    10.20.99.0 0.0.0.255 area 0
+    10.255.255.0 0.0.0.3 area 0
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    1.1.1.1              110      00:04:57
+    2.2.2.2              110      00:04:57
+  Distance: (default is 110)
+
+R-SUC#
+
+############################################################
+Paso 1 — Pasivo por defecto en R-HQ
+############################################################
+
+R-HQ#show  ip protocols
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 1.1.1.1
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    10.10.10.0 0.0.0.255 area 0
+    10.10.20.0 0.0.0.255 area 0
+    10.10.30.0 0.0.0.255 area 0
+    10.10.40.0 0.0.0.255 area 0
+    10.10.99.0 0.0.0.255 area 0
+    10.255.255.0 0.0.0.3 area 0
+  Passive Interface(s):
+    GigabitEthernet0/0/0
+    GigabitEthernet0/0/2
+    GigabitEthernet0/0/0.10
+    GigabitEthernet0/0/0.20
+    GigabitEthernet0/0/0.30
+    GigabitEthernet0/0/0.40
+    GigabitEthernet0/0/0.99
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    1.1.1.1              110      00:00:28
+    2.2.2.2              110      00:08:22
+  Distance: (default is 110)
+
+R-HQ#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   FULL/DR         00:00:39    10.255.255.2    GigabitEthernet0/0/1
+R-HQ#
+
+############################################################
+Paso 2 — Pasivo por defecto en R-SUC
+############################################################
+
+R-SUC#show ip protocols
+
+Routing Protocol is "ospf 1"
+  Outgoing update filter list for all interfaces is not set
+  Incoming update filter list for all interfaces is not set
+  Router ID 2.2.2.2
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Maximum path: 4
+  Routing for Networks:
+    10.20.50.0 0.0.0.255 area 0
+    10.20.99.0 0.0.0.255 area 0
+    10.255.255.0 0.0.0.3 area 0
+  Passive Interface(s):
+    GigabitEthernet0/0/0
+    GigabitEthernet0/0/2
+    GigabitEthernet0/0/0.50
+    GigabitEthernet0/0/0.99
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    1.1.1.1              110      00:00:28
+    2.2.2.2              110      00:00:28
+  Distance: (default is 110)
+
+R-SUC#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           1   FULL/DR         00:00:38    10.255.255.1    GigabitEthernet0/0/1
+R-SUC#
+
+############################################################
+Paso 3 — Autenticación MD5 en G0/0/1
+############################################################
+
+--- R-HQ ---
+R-HQ#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   FULL/DR         00:00:39    10.255.255.2    GigabitEthernet0/0/1
+R-HQ#show ip ospf interface GigabitEthernet0/0/1
+
+GigabitEthernet0/0/1 is up, line protocol is up
+  Internet address is 10.255.255.1/30, Area 0
+  Process ID 1, Router ID 1.1.1.1, Network Type BROADCAST, Cost: 1
+  Transmit Delay is 1 sec, State BDR, Priority 1
+  Designated Router (ID) 2.2.2.2, Interface address 10.255.255.2
+  Backup Designated Router (ID) 1.1.1.1, Interface address 10.255.255.1
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+    Hello due in 00:00:08
+  Index 1/1, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 1, Adjacent neighbor count is 1
+    Adjacent with neighbor 2.2.2.2  (Designated Router)
+  Suppress hello for 0 neighbor(s)
+  Message digest authentication enabled
+    Youngest key id is 1
+R-HQ#
+
+--- R-SUC ---
+R-SUC#show ip ospf neighbor
+
+
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+1.1.1.1           1   FULL/BDR        00:00:34    10.255.255.1    GigabitEthernet0/0/1
+R-SUC#show ip ospf interface GigabitEthernet0/0/1
+
+GigabitEthernet0/0/1 is up, line protocol is up
+  Internet address is 10.255.255.2/30, Area 0
+  Process ID 1, Router ID 2.2.2.2, Network Type BROADCAST, Cost: 1
+  Transmit Delay is 1 sec, State DR, Priority 1
+  Designated Router (ID) 2.2.2.2, Interface address 10.255.255.2
+  Backup Designated Router (ID) 1.1.1.1, Interface address 10.255.255.1
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+    Hello due in 00:00:04
+  Index 1/1, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 1, Adjacent neighbor count is 1
+    Adjacent with neighbor 1.1.1.1  (Backup Designated Router)
+  Suppress hello for 0 neighbor(s)
+  Message digest authentication enabled
+    Youngest key id is 1
+
+############################################################
+Paso 4 — Subinterfaces pasivas y rutas OSPF
+############################################################
+
+--- R-HQ ---
+R-HQ#show ip ospf interface GigabitEthernet0/0/0.10
+
+GigabitEthernet0/0/0.10 is up, line protocol is up
+  Internet address is 10.10.10.1/24, Area 0
+  Process ID 1, Router ID 1.1.1.1, Network Type BROADCAST, Cost: 1
+  Transmit Delay is 1 sec, State WAITING, Priority 1
+  No designated router on this network
+  No backup designated router on this network
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+    No Hellos (Passive interface)
+  Index 2/2, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 0, Adjacent neighbor count is 0
+  Suppress hello for 0 neighbor(s)
+R-HQ#
+R-HQ#show ip route ospf
+     10.0.0.0/8 is variably subnetted, 14 subnets, 3 masks
+O       10.20.50.0 [110/2] via 10.255.255.2, 00:09:04, GigabitEthernet0/0/1
+O       10.20.99.0 [110/2] via 10.255.255.2, 00:09:04, GigabitEthernet0/0/1
+
+R-HQ#
+
+--- R-SUC ---
+R-SUC#show ip ospf interface GigabitEthernet0/0/0.50
+
+GigabitEthernet0/0/0.50 is up, line protocol is up
+  Internet address is 10.20.50.1/24, Area 0
+  Process ID 1, Router ID 2.2.2.2, Network Type BROADCAST, Cost: 1
+  Transmit Delay is 1 sec, State WAITING, Priority 1
+  No designated router on this network
+  No backup designated router on this network
+  Timer intervals configured, Hello 10, Dead 40, Wait 40, Retransmit 5
+    No Hellos (Passive interface)
+  Index 2/2, flood queue length 0
+  Next 0x0(0)/0x0(0)
+  Last flood scan length is 1, maximum is 1
+  Last flood scan time is 0 msec, maximum is 0 msec
+  Neighbor Count is 0, Adjacent neighbor count is 0
+  Suppress hello for 0 neighbor(s)
+R-SUC#
+R-SUC#show ip route ospf
+     10.0.0.0/8 is variably subnetted, 11 subnets, 3 masks
+O       10.10.10.0 [110/2] via 10.255.255.1, 00:09:36, GigabitEthernet0/0/1
+O       10.10.20.0 [110/2] via 10.255.255.1, 00:09:36, GigabitEthernet0/0/1
+O       10.10.30.0 [110/2] via 10.255.255.1, 00:09:36, GigabitEthernet0/0/1
+O       10.10.40.0 [110/2] via 10.255.255.1, 00:09:36, GigabitEthernet0/0/1
+O       10.10.99.0 [110/2] via 10.255.255.1, 00:09:36, GigabitEthernet0/0/1
+
+R-SUC#
+
+############################################################
+B3 — Entre sedes
+############################################################
+
+--- IP de PC-SUC ---
+C:\>ipconfig
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Link-local IPv6 Address.........: FE80::230:F2FF:FECE:822A
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.20.50.1
+
+Bluetooth Connection:
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Link-local IPv6 Address.........: ::
+   IPv6 Address....................: ::
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: ::
+                                     0.0.0.0
+
+C:\>
+
+--- IP de PC-ADM ---
+C:\>ipconfig
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Link-local IPv6 Address.........: FE80::230:A3FF:FEED:5E46
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.10.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.10.1
+
+--- B3.1: PC-SUC a 10.255.255.2 ---
+C:\>ping 10.255.255.2
+
+Pinging 10.255.255.2 with 32 bytes of data:
+
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.255.255.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.2: PC-SUC a 10.255.255.1 ---
+C:\>ping 10.255.255.1
+
+Pinging 10.255.255.1 with 32 bytes of data:
+
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.255.255.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.3: PC-SUC a 10.10.30.10 (SRV-TI) ---
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.4: PC-SUC a 10.10.10.21 (PC-ADM), dos ejecuciones ---
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time=11ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 3ms
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+--- B3.5: PC-ADM a 10.20.50.21 (PC-SUC) ---
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time=1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+--- B3.6: PC-VEN a 10.20.50.21 (PC-SUC) ---
+C:\> ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+C:\>
+
+--- B3.7: PC-INV a 10.20.50.21 (PC-SUC); éxito esperado hasta el bloque 8 ---
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>
+
+############################################################
+Configuración guardada
+############################################################
+
+R-HQ#copy running-config startup-config
+Destination filename [startup-config]?
+Building configuration...
+[OK]
+R-HQ#
+
+R-SUC#copy running-config startup-config
+Destination filename [startup-config]?
+Building configuration...
+[OK]
+R-SUC#

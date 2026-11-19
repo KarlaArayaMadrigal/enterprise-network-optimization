@@ -58,7 +58,7 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (bloques 1 a 5 de la v2 terminados).
+4. Red optimizada (v2) y validación — en curso (bloques 1 a 6 de la v2 terminados).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -318,7 +318,14 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   binding del snooping aparece como 0.
 - Observación (bloque 5): R-HQ entregó a PC-ADM IPs distintas en cada intento (.32, .25
   y .24) aunque la .21 a la .23 estaban libres. Causa sin determinar.
-- Siguiente: bloque 6 (OSPF).
+- Bloque 6 (OSPF): terminado y verificado (`tests/v2-bloque6-ospf.txt`).
+- Observación (bloque 6): al activar el pasivo por defecto en R-SUC y la autenticación
+  MD5, la vecindad se reinició brevemente y se recuperó sola; el DR del enlace WAN cambió
+  dos veces (deducido de las salidas, sin mensajes de log).
+- Posible limitación de Packet Tracer (bloque 6, sin confirmar): las subinterfaces
+  pasivas quedan en estado WAITING, sin DR, más de 9 minutos después del cambio. No
+  afecta: sus redes se anuncian.
+- Siguiente: bloque 7 (acceso seguro: credenciales, SSH y consola).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
