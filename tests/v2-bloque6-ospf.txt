@@ -12,6 +12,11 @@ de log con hora.
 Nota sobre la evidencia: ninguna salida de este bloque muestra la clave de OSPF. La
 running-config, que la contiene en tipo 7, no se transcribe aquí.
 
+Corrección (bloque 7): la clave no estaba en tipo 7 (en el bloque 6 no había
+service password-encryption, y Packet Tracer no cifra las claves de OSPF) y era
+literalmente el texto <clave-ospf> (incidente 9). Se cambió en el bloque 7
+(tests/v2-bloque7-acceso-seguro.txt).
+
 ############################################################
 Configuración — 2026-11-19
 ############################################################

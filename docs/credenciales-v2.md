@@ -20,26 +20,48 @@ SEC-01 a SEC-03).
 
 | Credencial | Equipos | Cómo se guarda en la configuración | ¿Reversible? |
 |---|---|---|---|
-| Usuario local de administración (privilegio 15) | Los 5 | Hash (scrypt, tipo 9, o MD5, tipo 5, según lo que acepte Packet Tracer) | No |
-| `enable secret`, distinto en cada equipo | Los 5 | Hash (mismo criterio) | No |
-| Clave de autenticación OSPF (MD5) | R-HQ y R-SUC | Cifrado tipo 7 de `service password-encryption` | **Sí** |
+| Usuario local de administración `karaya` (privilegio 15) | Los 5 | Hash MD5 (tipo 5). Packet Tracer no ofrece scrypt | No |
+| `enable secret`, distinto en cada equipo | Los 5 | Hash MD5 (tipo 5) | No |
+| Clave de autenticación OSPF (MD5) | R-HQ y R-SUC | **Texto plano** en Packet Tracer: `service password-encryption` no la cifra (en IOS real, tipo 7) | **Sí: se lee directamente** |
 
-- **Hash (tipos 5 y 9):** no se puede descifrar, pero sí atacar por fuerza bruta. Por
-  eso las contraseñas son robustas.
-- **Tipo 7:** es un cifrado reversible que solo evita que se lea la clave de un vistazo.
-  Cualquiera que tenga la configuración puede recuperar la clave de OSPF en segundos.
+- **Hash (tipo 5):** no se puede descifrar, pero sí atacar por fuerza bruta. Por eso las
+  contraseñas son robustas.
+- **Sal fija (Packet Tracer):** todos los hashes usan la sal `$1$mERr$`, así que la misma
+  contraseña da el mismo hash en todos los equipos. Por eso la configuración revela que
+  `karaya` tiene la misma contraseña en los cinco. En IOS real la sal es aleatoria.
+- **Tipo 7 (en IOS real):** es un cifrado reversible que solo evita que se lea la clave
+  de un vistazo. Cualquiera que tenga la configuración puede recuperarla en segundos. En
+  Packet Tracer, la clave de OSPF ni siquiera llega a tipo 7: queda en texto plano.
 - **Claves RSA de SSH:** no aparecen en la running-config.
 - No hay contraseñas de línea en la consola ni en las VTY: usan los usuarios locales.
 
 ## Dónde aparecen
 
 - **`configurations/v2/`:** las running-config se exportan completas, sin omitir nada,
-  porque son la evidencia de la v2. Contienen los hashes y la clave de OSPF en tipo 7.
+  porque son la evidencia de la v2. Contienen los hashes y la clave de OSPF en texto
+  plano.
 - **`diagrams/horizonte-v2.pkt`:** contiene la configuración completa de los equipos,
   así que quien abra el archivo tiene acceso a la misma información.
 - **Fuera del repositorio:** las contraseñas en texto plano se guardan en un gestor de
   contraseñas, fuera del repositorio. Nunca se guardan en un archivo dentro de la
   carpeta del proyecto, aunque esté en `.gitignore`.
+
+## Credenciales expuestas durante el bloque 7
+
+Algunas credenciales del laboratorio se escribieron en los chats de trabajo con Claude
+(Claude Code y Claude en claude.ai). Todas eran exclusivas del laboratorio.
+
+| Credencial expuesta | Dónde | Estado |
+|---|---|---|
+| `proyecto1` y `Packettracer1` (usuario `KarlaA`) | Claude Code | Reemplazadas en el momento; el usuario se borró |
+| Última contraseña de `KarlaA` | claude.ai | El usuario se borró de los cinco equipos |
+| `CLAVE_TEMPORAL` (usuario de prueba `PRUEBA`) | Claude Code | El usuario se borró |
+| `enable secret` de R-SUC (con un texto de más al final) | claude.ai | Cambiado (hash `3lAm…`) |
+| `<clave-ospf>` (clave de OSPF del bloque 6, el marcador) | Claude Code | Cambiada |
+| Clave de OSPF vigente | Claude Code | En uso. Es pública de todos modos: Packet Tracer la guarda en texto plano y aparece en `configurations/v2/` |
+
+La contraseña de `karaya` y los `enable secret` vigentes de los cinco equipos no se
+escribieron en ningún chat. Detalle en `tests/v2-bloque7-acceso-seguro.txt`.
 
 ## En una red real
 

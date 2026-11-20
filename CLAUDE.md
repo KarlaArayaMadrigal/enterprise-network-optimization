@@ -197,17 +197,21 @@ Detalle de las opciones en `docs/uso-de-ia.md`.
 Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el grupo 1.
 
 **Acceso a los equipos**
-- **Credenciales (D9):** un usuario personal con privilegio 15 y `enable secret`
+- **Credenciales (D9):** un usuario personal (`karaya`) con privilegio 15 y `enable secret`
   distinto en cada equipo, todas con hash (scrypt si Packet Tracer lo acepta; si no,
   MD5) y `service password-encryption`. Contraseñas exclusivas del laboratorio. Las
   configuraciones de `configurations/v2/` se exportan completas, sin omitir nada.
-  Política en `docs/credenciales-v2.md`.
+  Política en `docs/credenciales-v2.md`. Cambio decidido por Karla el 2026-11-20
+  (bloque 7): el usuario pasó de `KarlaA` a `karaya`, con contraseña nueva, en los cinco
+  equipos, por la anomalía de R-SUC (ver "Estado de la v2").
 - **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, todas las
   líneas VTY que tenga cada equipo (en la v1, 0 a 4 en los routers y 0 a 15 en los
-  switches) solo con SSH y `access-class` limitado a 10.10.30.0/24, con un deny final
-  explícito en esa ACL. En el paso de IPv6, el equivalente IPv6 en las VTY.
+  switches) solo con SSH y `access-class` limitado a 10.10.30.0/24 (ACL estándar
+  `ACL-VTY`), con un deny final explícito en esa ACL. En el paso de IPv6, el equivalente IPv6 en las VTY.
 - **Consola (D11):** usuarios locales y 10 minutos de inactividad en la consola y en
-  las VTY.
+  las VTY. Extensión decidida por Karla el 2026-11-20 (bloque 7): lo mismo en la línea
+  AUX de R-HQ y R-SUC (`login local` y `exec-timeout 10 0`). El puerto AUX no estaba
+  en el diseño ni en la auditoría; Karla lo encontró al revisar el "antes" del bloque 7.
 - **Banner (D12):** acceso restringido, sin nombre de la empresa, modelos ni IPs.
 
 **Switching**
@@ -266,9 +270,9 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   liberar y renovar la IP de PC-INV y repetir la A3.
 - Port-security: si se cambia una PC, el puerto queda en err-disabled.
 
-**Por comprobar en Packet Tracer:** scrypt en las contraseñas, SHA en OSPF (se usa MD5) y
-si sube en `show access-lists` el contador de una ACL usada como `access-class` (si no
-sube, se documenta como limitación del simulador).
+**Por comprobar en Packet Tracer:** SHA en OSPF (se usa MD5). Resuelto en el bloque 7: no
+hay scrypt (se usa MD5, tipo 5), y el contador de una ACL usada como `access-class` sí
+sube (ver "Estado de la v2").
 
 ## Estado de la v2
 
@@ -325,7 +329,30 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
 - Posible limitación de Packet Tracer (bloque 6, sin confirmar): las subinterfaces
   pasivas quedan en estado WAITING, sin DR, más de 9 minutos después del cambio. No
   afecta: sus redes se anuncian.
-- Siguiente: bloque 7 (acceso seguro: credenciales, SSH y consola).
+- Bloque 7 (acceso seguro): terminado y verificado (`tests/v2-bloque7-acceso-seguro.txt`).
+  Usuario `karaya` en los cinco equipos.
+- Limitaciones de Packet Tracer (bloque 7): no hay scrypt; la sal MD5 es fija
+  (`$1$mERr$`), así que la misma contraseña da el mismo hash en todos los equipos; el
+  2960 no muestra `privilege 15` en la running-config (el ISR4331 sí); `transport input`
+  no acepta dos protocolos en el 2960; `show line` no existe en el 2960 y, en el ISR4331,
+  la columna AccI no muestra la `access-class`; `show ssh` muestra 1.99 con SSH v2;
+  `service password-encryption` no cifra la clave de OSPF, que queda en texto plano.
+- Contadores de la `access-class` (bloque 7): el deny suma tantas coincidencias como
+  líneas VTY tiene el equipo por cada intento rechazado (16 en los switches, 5 en R-HQ),
+  con el mecanismo sin determinar. En la central, el permit suma 2 por SSH y 1 por
+  Telnet; SW-SUC dio 2 de más sin explicar. En la D3.1, el criterio es que el deny suba.
+- Observaciones (bloque 7): Telnet con `transport input ssh` se abre y se cierra, sin
+  "Connection refused" (no comparado con IOS real). Las claves RSA parecen persistir
+  tras un reinicio sin guardar.
+- Anomalía de Packet Tracer (bloque 7, sin causa determinada): en R-SUC, el usuario
+  `KarlaA` dejó de autenticar (SSH y Telnet, desde PC-TI, PC-SUC y R-HQ) con cualquier
+  contraseña, incluida una nueva, aunque el nombre guardado era exactamente `KarlaA` y
+  su hash era idéntico al de los equipos donde sí entraba. Antes había entrado una vez
+  en R-SUC con la misma configuración. Otros usuarios creados en R-SUC con `secret`
+  (PRUEBA, ADMINTI y karaya) sí autentican. Reiniciar R-SUC sin guardar no lo
+  resolvió. Descartados: la `access-class`, `transport input ssh`, el cliente y el
+  tipo de hash. Se resolvió cambiando el usuario a `karaya` en los cinco equipos.
+- Siguiente: bloque 8 (ACLs).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
@@ -361,6 +388,11 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
    sincronización de RSTP del switch no raíz bloquea los puertos de acceso porque Packet
    Tracer no los trata como edge. Lección: después de cualquier cambio de STP, revisar
    los puertos de acceso del switch no raíz con show spanning-tree y un ping.
+9. Clave de OSPF con el marcador (v2, bloque 6, detectado en el bloque 7): la clave era
+   literalmente `<clave-ospf>`, porque se escribió el marcador del comando sin
+   reemplazarlo. Se vio en la running-config de R-HQ al revisar el cifrado. Resuelto
+   cambiándola en R-HQ y R-SUC; la vecindad volvió a FULL. Lección: antes de ejecutar un
+   comando copiado, buscar `<` y `>` en la línea.
 
 Casi incidentes (sin efecto comprobado):
 - VLAN nativa 99 en vez de 999 en SW-HQ-1 Gi0/1 (v2, bloque 3, error de un dígito).
@@ -369,7 +401,15 @@ Casi incidentes (sin efecto comprobado):
   (análisis, no comprobado): la VLAN 99 saldría sin etiqueta hacia R-HQ, cuya
   subinterfaz .99 espera tramas etiquetadas, y la gestión de la central perdería su
   gateway.
+- Usuario sin contraseña en SW-HQ-2 (v2, bloque 7): al explorar con `?`, se ejecutó
+  `username … privilege 15` sin `secret`. Se corrigió.
+- `enable secret` con texto de más en R-SUC (v2, bloque 7, antes del reinicio): todo lo
+  que va después de `secret` forma parte de la contraseña. Se corrigió.
 
 Lección de método (bloque 3): al pegar bloques de comandos en la CLI de Packet Tracer
 se perdieron líneas (en el paso 3, el trunk de SW-HQ-1 no cambió al primer intento).
 Desde ese paso los comandos se escriben línea por línea, comprobando el prompt.
+
+Lección de método (bloque 7): en SW-HQ-2, `login local` se perdió dos veces sin aviso.
+Desde entonces, se hace un `do show` después de cada `login local`, antes de salir de la
+línea.

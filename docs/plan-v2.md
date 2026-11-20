@@ -310,16 +310,21 @@ quitar el pasivo por defecto.
    - Comprobar primero cuántas líneas VTY tiene el equipo, con `show line` o en la
      running-config. En la v1, los routers tenían solo las líneas 0 a 4 y los switches,
      de 0 a 15. Configurar todos los rangos que existan; si queda uno sin configurar,
-     repite la incoherencia de INFO-01.
-   - Autenticación con usuarios locales.
-   - **Primero, permitir SSH y Telnet a la vez**, para probar SSH sin perder Telnet.
+     repite la incoherencia de INFO-01. En los routers, el rango es `line vty 0 4`:
+     `line vty 0 ?` ofrece hasta 15, pero es el máximo del comando, y `line vty 0 15`
+     crearía las líneas 5 a 15.
+   - Autenticación con usuarios locales. Después de cada `login local`, comprobar con
+     `do show running-config | include line|login` (en el bloque 7 se perdió dos veces).
+   - **Primero, permitir SSH y Telnet a la vez**, para probar SSH sin perder Telnet. En
+     Packet Tracer, con `transport input all`: no acepta `transport input ssh telnet`.
    - Tiempo de inactividad de 10 minutos.
    - **Borrar las contraseñas de línea viejas** (`cisco123`). Si quedan,
      `service password-encryption` las deja en tipo 7 y contradicen
      `docs/credenciales-v2.md`.
 4. **Probar SSH desde PC-TI.** Cuando funcione:
    - Dejar las VTY solo con SSH.
-   - Crear una ACL estándar que permita 10.10.30.0/24 y termine con un **deny final
+   - Crear una ACL estándar con nombre (`ACL-VTY`, la misma en los cinco equipos) que
+     permita 10.10.30.0/24 y termine con un **deny final
      explícito** (obligatorio, para que la D3.1 de `docs/plan-pruebas-v2.md` tenga
      contador).
    - Aplicarla como `access-class` de entrada en las VTY.
@@ -328,8 +333,10 @@ quitar el pasivo por defecto.
      limitación del simulador.
 5. **Consola, al final y solo después de entrar por SSH con el usuario** (lo que
    confirma que la contraseña funciona): autenticación con usuarios locales y 10
-   minutos de inactividad. **No guardar la configuración hasta salir de la consola y
-   volver a entrar con el usuario.**
+   minutos de inactividad. En R-HQ y R-SUC, lo mismo en la línea AUX (extensión de la
+   D11 decidida en el bloque 7; su evidencia es la running-config, porque no se puede
+   probar sin cable). **No guardar la configuración hasta salir de la consola y volver a
+   entrar con el usuario.**
 
 **Riesgo de perder el acceso**
 - **Consola:** si se configura el inicio de sesión local con una contraseña mal escrita,
@@ -353,8 +360,8 @@ quitar el pasivo por defecto.
 | `show ssh`, con la sesión abierta | La sesión de PC-TI con la versión 2.0 |
 | PC-TI: Telnet a los mismos equipos | Rechazado. Prueba nueva de la D7 |
 | PC-ADM: SSH a 10.10.99.12 | Rechazado por la `access-class`. Todavía no hay ACLs: el paquete llega, pero el equipo rechaza la conexión |
-| `show access-lists` en SW-HQ-2, antes y después del SSH desde PC-ADM | Sube el contador del deny final de la ACL de las VTY. Si no sube, anotarlo como limitación del simulador |
-| `show line` y `show running-config` | Sin `enable password`, sin contraseñas de línea, secrets con hash, todas las líneas VTY que existan configuradas igual y con `access-class` |
+| `show access-lists` en SW-HQ-2, antes y después del SSH desde PC-ADM | Sube el contador del deny final de la ACL de las VTY (en Packet Tracer, una coincidencia por cada línea VTY en cada intento: 16 en los switches y 5 en los routers) |
+| `show line` (en los 2960 no existe: usar la running-config) y `show running-config` | Sin `enable password`, sin contraseñas de línea, secrets con hash, todas las líneas VTY que existan configuradas igual y con `access-class` |
 | Salir de la consola y volver a entrar | Pide usuario y contraseña |
 | Copiar `show ip ssh` y las sesiones a `tests/` | Evidencia de SEC-01 a SEC-04 e INFO-01 |
 
