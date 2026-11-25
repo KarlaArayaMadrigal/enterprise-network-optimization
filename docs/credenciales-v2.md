@@ -20,7 +20,7 @@ SEC-01 a SEC-03).
 
 | Credencial | Equipos | Cómo se guarda en la configuración | ¿Reversible? |
 |---|---|---|---|
-| Usuario local de administración `karaya` (privilegio 15) | Los 5 | Hash MD5 (tipo 5). Packet Tracer no ofrece scrypt | No |
+| Usuario local de administración `karaya` (privilegio 15 en los routers; en los switches, 1 al abrir el `.pkt`: ver nota) | Los 5 | Hash MD5 (tipo 5). Packet Tracer no ofrece scrypt | No |
 | `enable secret`, distinto en cada equipo | Los 5 | Hash MD5 (tipo 5) | No |
 | Clave de autenticación OSPF (MD5) | R-HQ y R-SUC | **Texto plano** en Packet Tracer: `service password-encryption` no la cifra (en IOS real, tipo 7) | **Sí: se lee directamente** |
 
@@ -29,6 +29,10 @@ SEC-01 a SEC-03).
 - **Sal fija (Packet Tracer):** todos los hashes usan la sal `$1$mERr$`, así que la misma
   contraseña da el mismo hash en todos los equipos. Por eso la configuración revela que
   `karaya` tiene la misma contraseña en los cinco. En IOS real la sal es aleatoria.
+- **Privilegio en los 2960 (Packet Tracer):** el switch no guarda `privilege 15` en el
+  usuario, así que al abrir el `.pkt` `karaya` entra con privilegio 1 y sube a 15 con
+  `enable` y el `enable secret` de cada switch. Karla lo aceptó el 2026-11-23 (diferencia
+  con la D9). En IOS real, el privilegio se guarda con el usuario.
 - **Tipo 7 (en IOS real):** es un cifrado reversible que solo evita que se lea la clave
   de un vistazo. Cualquiera que tenga la configuración puede recuperarla en segundos. En
   Packet Tracer, la clave de OSPF ni siquiera llega a tipo 7: queda en texto plano.

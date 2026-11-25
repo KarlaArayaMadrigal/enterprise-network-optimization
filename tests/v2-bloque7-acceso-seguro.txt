@@ -130,8 +130,10 @@ Limitaciones
 - La sal de los hashes MD5 es siempre $1$mERr$, en los cinco equipos y los dos modelos.
   La misma contraseña da el mismo hash en todos los equipos; en IOS real la sal es
   aleatoria.
-- Los 2960 no muestran "privilege 15" en la running-config, aunque se aplica (SSH entra
-  directamente en #). Los ISR4331 sí lo muestran.
+- Los 2960 no muestran "privilege 15" en la running-config. Se aplica mientras dura la
+  sesión de Packet Tracer en la que se configuró (SSH entra directamente en #), pero no
+  se guarda: al abrir el .pkt, el usuario entra con privilegio 1 (corregido en el
+  bloque 8, tests/v2-bloque8-acls.txt). Los ISR4331 sí lo muestran y lo guardan.
 - transport input no acepta dos protocolos ("ssh telnet") en el 2960. En los routers se
   usó transport input all, sin probar si el ISR4331 acepta "ssh telnet".
 - transport input all y exec-timeout 10 0 son valores por defecto y no aparecen en la

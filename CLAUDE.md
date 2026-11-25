@@ -58,7 +58,8 @@ enterprise-network-optimization/
 2. Red base (v1) — terminada.
 3. Auditoría con Claude Code de `configurations/v1/` — terminada
    (`docs/auditoria-v1.md` y `docs/comparacion-auditoria-v1.md`).
-4. Red optimizada (v2) y validación — en curso (bloques 1 a 6 de la v2 terminados).
+4. Red optimizada (v2) y validación — en curso (bloques 1 a 8 de la v2 terminados; falta
+   exportar la v2 en IPv4 y el bloque 9, IPv6).
 5. Documentación final (README con comparación antes/después y uso de IA).
 
 ## Diseño de la red
@@ -204,6 +205,9 @@ Valores por defecto aceptados por Karla el 2026-11-11, con los ajustes por el gr
   Política en `docs/credenciales-v2.md`. Cambio decidido por Karla el 2026-11-20
   (bloque 7): el usuario pasó de `KarlaA` a `karaya`, con contraseña nueva, en los cinco
   equipos, por la anomalía de R-SUC (ver "Estado de la v2").
+  Diferencia por Packet Tracer (bloque 8): en los 2960, `karaya` queda con privilegio 1
+  al abrir el `.pkt` y sube a 15 con `enable` (opción b, decidida por Karla el
+  2026-11-23; ver "Estado de la v2").
 - **SSH (D10):** versión 2, dominio `horizonte.internal`, RSA de 2048 bits, todas las
   líneas VTY que tenga cada equipo (en la v1, 0 a 4 en los routers y 0 a 15 en los
   switches) solo con SSH y `access-class` limitado a 10.10.30.0/24 (ACL estándar
@@ -333,7 +337,8 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   Usuario `karaya` en los cinco equipos.
 - Limitaciones de Packet Tracer (bloque 7): no hay scrypt; la sal MD5 es fija
   (`$1$mERr$`), así que la misma contraseña da el mismo hash en todos los equipos; el
-  2960 no muestra `privilege 15` en la running-config (el ISR4331 sí); `transport input`
+  2960 no muestra ni guarda `privilege 15` (corregido en el bloque 8; el ISR4331 sí);
+  `transport input`
   no acepta dos protocolos en el 2960; `show line` no existe en el 2960 y, en el ISR4331,
   la columna AccI no muestra la `access-class`; `show ssh` muestra 1.99 con SSH v2;
   `service password-encryption` no cifra la clave de OSPF, que queda en texto plano.
@@ -352,7 +357,29 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   (PRUEBA, ADMINTI y karaya) sí autentican. Reiniciar R-SUC sin guardar no lo
   resolvió. Descartados: la `access-class`, `transport input ssh`, el cliente y el
   tipo de hash. Se resolvió cambiando el usuario a `karaya` en los cinco equipos.
-- Siguiente: bloque 8 (ACLs).
+- Bloque 8 (ACLs): terminado y verificado (`tests/v2-bloque8-acls.txt`). ACL-GESTION de
+  salida en la .99 de los dos routers y ACL-INVITADOS de entrada en la .40 de R-HQ. Los
+  fallos esperados (B2.2, B2.5, B2.6, B3.7, B4.3 a B4.5, C4.4 y D3.3) suben el deny
+  explícito; la regresión de las fases B y C sigue al 100 %.
+- Limitación de Packet Tracer (bloque 8): el 2960 no guarda `privilege 15` en el
+  username. Al abrir el `.pkt`, `karaya` entra con privilegio 1 en los tres switches y
+  sube a 15 con `enable`. Diferencia con la D9 aceptada por Karla (opción b): routers en
+  15, switches en 1.
+- Limitaciones de Packet Tracer (bloque 8): un paquete bloqueado por una ACL aparece en
+  las PCs como "Destination host unreachable" (en IOS real sería "administratively
+  prohibited", no comparado); `show access-lists` con el nombre de la ACL no muestra los
+  números de secuencia; la paginación (--More--) puede cortar las salidas al copiarlas.
+- Observaciones (bloque 8): el tráfico del propio router no pasa por su ACL de salida
+  (B4.1 y B4.2). Cada conexión TCP bloqueada por ACL-INVITADOS suma 12 en el deny
+  (navegador y SSH: dos mediciones, no regla). La línea 10 de ACL-GESTION sube sola con
+  el NTP de los switches. Los contadores vuelven a cero al abrir el `.pkt`. No se
+  determinó si Packet Tracer, al abrir el `.pkt`, carga la startup-config o la
+  running-config guardada en el archivo.
+- Observación (bloque 8, sin causa determinada): después de la ACL de R-HQ, el NTP de
+  SW-HQ-2 apareció reiniciado (.INIT., stratum 16) y volvió a sincronizar solo, con la
+  ACL aplicada.
+- Siguiente: guardar los cinco equipos y exportar las running-config a
+  `configurations/v2/` (v2 en IPv4); después, el bloque 9 (IPv6).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 
