@@ -1,0 +1,256 @@
+Fase A del plan de pruebas v2 (docs/plan-pruebas-v2.md): verificación de DHCP
+Fecha: 2026-11-25
+Salidas obtenidas por Karla en Packet Tracer y transcritas tal como las entregó.
+De las PCs se transcribe solo la conexión FastEthernet0; la conexión Bluetooth
+(interfaz de Packet Tracer sin uso, IP 0.0.0.0) se omite.
+
+Orden: contadores de R-HQ (10:27), renovación de las cuatro PCs, ipconfig /all de PC-TI,
+asignaciones de R-HQ y R-SUC, binding de SW-SUC y contadores de R-HQ (10:48).
+Horas: 10:27 y 10:48 son la hora local del computador de Karla al enviar las salidas,
+no la de los equipos (no se tomó show clock). Desde la fase D, la referencia es el reloj
+de la simulación (show clock).
+
+=== R-HQ: contadores de las ACLs antes de la fase A (10:27) ===
+
+R-HQ#terminal length 0
+              ^
+% Invalid input detected at '^' marker.
+
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (10 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (2 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+(terminal length 0 no existe en el ISR4331 de Packet Tracer; ver CLAUDE.md.)
+
+=== PC-ADM: ipconfig /release, /renew y /all ===
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.10.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.10.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.A3ED.5E46
+   Link-local IPv6 Address.........: FE80::230:A3FF:FEED:5E46
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.10.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.10.1
+   DHCP Servers....................: 10.10.10.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-62-AA-B8-86-00-30-A3-ED-5E-46
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-VEN: ipconfig /release, /renew y /all ===
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.20.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.20.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0010.1172.A4CD
+   Link-local IPv6 Address.........: FE80::210:11FF:FE72:A4CD
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.20.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.20.1
+   DHCP Servers....................: 10.10.20.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-63-DE-73-00-00-10-11-72-A4-CD
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-INV: ipconfig /release, /renew y /all ===
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.10.40.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.10.40.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0001.63CA.DB04
+   Link-local IPv6 Address.........: FE80::201:63FF:FECA:DB04
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.40.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.40.1
+   DHCP Servers....................: 10.10.40.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-3B-78-0C-62-00-01-63-CA-DB-04
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-SUC: ipconfig /release, /renew y /all ===
+
+C:\>ipconfig /release
+
+   IP Address......................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: 0.0.0.0
+   DNS Server......................: 0.0.0.0
+
+C:\>ipconfig /renew
+
+   IP Address......................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: 10.20.50.1
+   DNS Server......................: 10.10.30.10
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: horizonte.internal
+   Physical Address................: 0030.F2CE.822A
+   Link-local IPv6 Address.........: FE80::230:F2FF:FECE:822A
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.20.50.21
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.20.50.1
+   DHCP Servers....................: 10.20.50.1
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-45-2D-07-C4-00-30-F2-CE-82-2A
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== PC-TI: ipconfig /all (IP fija) ===
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..:
+   Physical Address................: 0001.6474.2A88
+   Link-local IPv6 Address.........: FE80::201:64FF:FE74:2A88
+   IPv6 Address....................: ::
+   IPv4 Address....................: 10.10.30.11
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: ::
+                                     10.10.30.1
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................:
+   DHCPv6 Client DUID..............: 00-01-00-01-84-45-B2-98-00-01-64-74-2A-88
+   DNS Servers.....................: ::
+                                     10.10.30.10
+
+=== R-HQ: asignaciones DHCP ===
+
+R-HQ#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.10.10.21      0030.A3ED.5E46           --                     Automatic
+10.10.20.21      0010.1172.A4CD           --                     Automatic
+10.10.40.21      0001.63CA.DB04           --                     Automatic
+
+=== R-SUC: asignaciones DHCP ===
+
+R-SUC#show ip dhcp binding
+IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+10.20.50.21      0030.F2CE.822A           --                     Automatic
+
+=== SW-SUC: binding de DHCP snooping ===
+
+SW-SUC#show ip dhcp snooping binding
+MacAddress          IpAddress        Lease(sec)  Type           VLAN  Interface
+------------------  ---------------  ----------  -------------  ----  -----------------
+00:30:F2:CE:82:2A   10.20.50.21      0           dhcp-snooping  50    FastEthernet0/10
+Total number of bindings: 1
+
+=== R-HQ: contadores de las ACLs después de la fase A (10:48) ===
+
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (158 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+=== Resumen ===
+
+| #  | PC     | IP          | MAC            | Gateway    | DNS         | Servidor DHCP | Resultado |
+|----|--------|-------------|----------------|------------|-------------|---------------|-----------|
+| A1 | PC-ADM | 10.10.10.21 | 0030.A3ED.5E46 | 10.10.10.1 | 10.10.30.10 | R-HQ          | OK        |
+| A2 | PC-VEN | 10.10.20.21 | 0010.1172.A4CD | 10.10.20.1 | 10.10.30.10 | R-HQ          | OK        |
+| A3 | PC-INV | 10.10.40.21 | 0001.63CA.DB04 | 10.10.40.1 | 10.10.30.10 | R-HQ          | OK        |
+| A4 | PC-SUC | 10.20.50.21 | 0030.F2CE.822A | 10.20.50.1 | 10.10.30.10 | R-SUC         | OK        |
+| A5 | PC-TI  | 10.10.30.11 | 0001.6474.2A88 | 10.10.30.1 | 10.10.30.10 | — (fija)      | OK        |
+
+- Las cuatro PCs con DHCP obtuvieron la primera IP después de la exclusión (.21), con
+  máscara 255.255.255.0 y dominio horizonte.internal. Sus MAC coinciden con las
+  asignaciones de R-HQ y R-SUC.
+- PC-TI: "DHCP Servers 0.0.0.0" y sin sufijo DNS, porque su IP es fija.
+- DHCP snooping (bloque 5): SW-SUC registró una entrada, la de PC-SUC, en la VLAN 50 y
+  Fa0/10. El lease aparece como 0 (limitación del bloque 5). SW-HQ-2 queda sin snooping
+  (diferencia con la D19), así que no se esperaba binding ahí.
+- ACL-INVITADOS (bloque 8): entre las 10:27 y las 10:48, con la fase A como única
+  actividad, la línea 10 (DHCP) pasó de 2 a 5 coincidencias y el deny final siguió sin
+  coincidencias, así que el DHCP de PC-INV no se bloqueó. Que el aumento de 3 corresponda
+  a release, Discover y Request es una deducción: el contador no distingue mensajes.
+- La línea 10 de ACL-GESTION pasó de 10 a 158 en esos 21 minutos, sin relación con la
+  fase A (sube sola con el NTP de los switches, observación del bloque 8). No es
+  criterio de ninguna prueba.
+- IPv6: las PCs solo tienen dirección de enlace local (FE80::), sin IPv6 global, porque
+  el bloque 9 está pendiente.

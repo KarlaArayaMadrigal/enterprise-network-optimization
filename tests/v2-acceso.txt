@@ -1,0 +1,928 @@
+Fase D del plan de pruebas v2 (docs/plan-pruebas-v2.md): pruebas nuevas
+Fecha: 2026-11-25
+Salidas obtenidas por Karla en Packet Tracer y transcritas tal como las entregó.
+Las horas son las del reloj de la simulación (show clock, UTC, sincronizado con SRV-TI
+por NTP).
+
+=== D1. Administración desde PC-TI ===
+
+--- D1.1: ping 10.10.99.11 (SW-HQ-1) ---
+
+C:\>ping 10.10.99.11
+
+Pinging 10.10.99.11 with 32 bytes of data:
+
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.11: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.10.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- D1.2: ping 10.10.99.12 (SW-HQ-2) ---
+
+C:\>ping 10.10.99.12
+
+Pinging 10.10.99.12 with 32 bytes of data:
+
+Reply from 10.10.99.12: bytes=32 time=1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+Reply from 10.10.99.12: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.10.99.12:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+--- D1.3: ping 10.20.99.11 (SW-SUC) ---
+
+C:\>ping 10.20.99.11
+
+Pinging 10.20.99.11 with 32 bytes of data:
+
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+Reply from 10.20.99.11: bytes=32 time<1ms TTL=253
+
+Ping statistics for 10.20.99.11:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- D1.4: ssh -l karaya 10.10.99.11 (SW-HQ-1) ---
+
+C:\>ssh -l karaya 10.10.99.11
+
+Password:
+
+ Acceso restringido a personal autorizado. Toda actividad puede ser registrada.
+
+SW-HQ-1>enable
+Password:
+SW-HQ-1#exit
+
+[Connection to 10.10.99.11 closed by foreign host]
+
+--- D1.5: ssh -l karaya 10.10.99.12 (SW-HQ-2) ---
+
+C:\>ssh -l karaya 10.10.99.12
+
+Password:
+
+ Acceso restringido a personal autorizado. Toda actividad puede ser registrada.
+
+SW-HQ-2>enable
+Password:
+SW-HQ-2#exit
+
+[Connection to 10.10.99.12 closed by foreign host]
+
+--- D1.6: ssh -l karaya 10.20.99.11 (SW-SUC) ---
+
+C:\>ssh -l karaya 10.20.99.11
+
+Password:
+
+ Acceso restringido a personal autorizado. Toda actividad puede ser registrada.
+
+SW-SUC>enable
+Password:
+SW-SUC#exit
+
+[Connection to 10.20.99.11 closed by foreign host]
+
+--- D1.7: ssh -l karaya 10.10.30.1 (R-HQ) ---
+
+C:\>ssh -l karaya 10.10.30.1
+
+Password:
+
+  Acceso restringido a personal autorizado. Toda actividad puede ser registrada.
+
+R-HQ#exit
+
+[Connection to 10.10.30.1 closed by foreign host]
+
+--- D1.8: ssh -l karaya 10.20.50.1 (R-SUC) ---
+
+C:\>ssh -l karaya 10.20.50.1
+
+Password:
+
+ Acceso restringido a personal autorizado. Toda actividad puede ser registrada.
+
+R-SUC#exit
+
+[Connection to 10.20.50.1 closed by foreign host]
+
+=== D2. Telnet desactivado (desde PC-TI) ===
+
+--- D2.1: telnet 10.10.99.11 (SW-HQ-1) ---
+
+C:\>telnet 10.10.99.11
+Trying 10.10.99.11 ...Open
+
+[Connection to 10.10.99.11 closed by foreign host]
+
+--- D2.2: telnet 10.10.99.12 (SW-HQ-2) ---
+
+C:\>telnet 10.10.99.12
+Trying 10.10.99.12 ...Open
+
+[Connection to 10.10.99.12 closed by foreign host]
+
+--- D2.3: telnet 10.20.99.11 (SW-SUC) ---
+
+C:\>telnet 10.20.99.11
+Trying 10.20.99.11 ...Open
+
+[Connection to 10.20.99.11 closed by foreign host]
+
+--- D2.4: telnet 10.10.30.1 (R-HQ) ---
+
+C:\>telnet 10.10.30.1
+Trying 10.10.30.1 ...Open
+
+[Connection to 10.10.30.1 closed by foreign host]
+
+--- D2.5: telnet 10.20.50.1 (R-SUC) ---
+
+C:\>telnet 10.20.50.1
+Trying 10.20.50.1 ...Open
+
+[Connection to 10.20.50.1 closed by foreign host]
+
+=== Contadores al terminar PC-TI (R-HQ 03:31:05, R-SUC 03:31:30) ===
+
+Antes de PC-TI: los contadores de R-HQ y R-SUC de la fase A (tests/v2-dhcp-pcs.txt; el
+de R-SUC se tomó junto con el de R-HQ a las 10:27, hora local). En los dos, ACL-VTY
+estaba en 0 y todos los deny en 0.
+
+R-HQ#show clock
+3:31:5.130 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (769 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+R-SUC#show clock
+3:31:30.726 UTC Fri Nov 13 2026
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (340 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+
+=== D3. Acceso no autorizado e Invitados ===
+
+--- D3.1, primer intento: R-HQ (5:39:42), ssh -l karaya 10.10.10.1 desde PC-ADM,
+    R-HQ (5:49:18) ---
+
+R-HQ#show clock
+5:39:42.377 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (1638 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+C:\>ssh -l karaya 10.10.10.1
+
+% Connection refused by remote host
+
+R-HQ#show clock
+5:49:18.957 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (5 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (1641 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+--- D3.1, segundo intento: ssh desde PC-ADM; R-SUC (6:11:51, por error); R-HQ (6:14:00) ---
+
+El "antes" del segundo intento es la lectura de R-HQ de las 6:10:03 (deny de ACL-VTY en
+5), tomada por error durante la B4.3 (tests/v2-ping.txt); entre las 6:10:03 y las
+6:14:00 solo hubo este intento contra R-HQ.
+
+C:\>ssh -l karaya 10.10.10.1
+
+% Connection refused by remote host
+
+R-SUC#show clock
+6:11:51.881 UTC Fri Nov 13 2026
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (871 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+
+R-HQ#show clock
+6:14:0.937 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (1879 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+--- D3.2: nslookup www.horizonte.internal desde PC-INV, R-HQ (7:58:52) ---
+
+"Antes": lectura de R-HQ de las 7:57:49 (tests/v2-ping.txt, después del primer
+intento de la B4.5), con la línea 30 de ACL-INVITADOS sin coincidencias y el deny en 23.
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+R-HQ#show clock
+7:58:52.404 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2603 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (1 match(es))
+    40 deny ip any any (23 match(es))
+
+--- D3.3, primer intento: ssh -l karaya 10.10.40.1 desde PC-INV, R-HQ (8:06:39) ---
+
+"Antes": lectura de R-HQ de las 8:03:46 (tests/v2-dns-web.txt, después de la C4.4),
+con el deny de ACL-INVITADOS en 827.
+
+C:\>ssh -l karaya 10.10.40.1
+
+% Connection timed out; remote host not responding
+
+R-HQ#show clock
+8:6:39.543 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2659 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (839 match(es))
+
+--- D3.3, segundo intento: ssh -l karaya 10.10.40.1 desde PC-INV, R-HQ (8:15:14) ---
+
+"Antes": lectura de R-HQ de las 8:14:15 (tests/v2-ping.txt, después del segundo
+intento de la B4.5), con el deny de ACL-INVITADOS en 855. Entre los dos intentos de la
+D3.3 se hicieron los segundos intentos de B2.5, B2.6, B3.7 y B4.5 (839 → 855).
+
+C:\>ssh -l karaya 10.10.40.1
+
+% Connection timed out; remote host not responding
+
+R-HQ#show clock
+8:15:14.229 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2714 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (867 match(es))
+
+=== D4. Protecciones de capa 2 ===
+
+--- D4.1: port-security en SW-HQ-2 Fa0/12 ---
+
+Pasos: se agregó una PC nueva al .pkt, se desconectó PC-INV de Fa0/12 y se conectó la
+PC nueva en ese puerto. Después se borró la PC nueva, se volvió a conectar PC-INV y se
+rehabilitó el puerto.
+
+Mensajes de la consola de SW-HQ-2 (pestaña CLI, copiados sin prompt):
+
+*Nov 13, 02:31:58.3131:  %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.10.30.10 port 514 started - CLI initiated
+*Nov 13, 02:31:58.3131: %LINK-3-UPDOWN: Interface Vlan99, changed state to down
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface Vlan99, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface FastEthernet0/2, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/2, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface FastEthernet0/10, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/10, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface FastEthernet0/11, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/11, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface FastEthernet0/12, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/12, changed state to up
+*Nov 13, 02:31:58.3131: %LINK-5-CHANGED: Interface Port-channel1, changed state to up
+*Nov 13, 02:31:58.3131: %LINEPROTO-5-UPDOWN: Line protocol on Interface Port-channel1, changed state to up
+*Nov 13, 08:22:39.2222: %LINK-3-UPDOWN: Interface FastEthernet0/12, changed state to down
+*Nov 13, 08:22:39.2222: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/12, changed state to down
+*Nov 13, 08:22:47.2222: %LINK-5-CHANGED: Interface FastEthernet0/12, changed state to up
+*Nov 13, 08:22:47.2222: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/12, changed state to up
+*Nov 13, 08:23:09.2323: %LINK-5-CHANGED: Interface FastEthernet0/12, changed state to administratively down
+*Nov 13, 08:23:09.2323: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/12, changed state to down
+*Nov 13, 08:23:09.2323: PM-4-ERR_DISABLE: psecure-violation error detected on Fa0/12, putting Fa0/12 in err-disable state.
+*Nov 13, 08:23:09.2323: PORT_SECURITY-2-PSECURE_VIOLATION: Security violation occurred, caused by MAC address 0006.2A60.B817 on port FastEthernet0/12.
+
+Antes de rehabilitar (PC-INV ya reconectada, puerto todavía en err-disabled):
+
+SW-HQ-2#show port-security interface fa0/12
+Port Security              : Enabled
+Port Status                : Secure-shutdown
+Violation Mode             : Shutdown
+Aging Time                 : 0 mins
+Aging Type                 : Absolute
+SecureStatic Address Aging : Disabled
+Maximum MAC Addresses      : 1
+Total MAC Addresses        : 1
+Configured MAC Addresses   : 0
+Sticky MAC Addresses       : 1
+Last Source Address:Vlan   : 0006.2A60.B817:40
+Security Violation Count   : 1
+
+SW-HQ-2#show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Po1       ETHERCHANNEL a SW- connected    trunk      a-full  a-100
+Fa0/1     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/4     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/5     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/6     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/7     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/8     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/9     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/10    ACCESO a PC-ADM Fa connected    10         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-VEN Fa connected    20         a-full  a-100 10/100BaseTX
+Fa0/12    ACCESO a PC-INV Fa err-disabled 40         auto    auto  10/100BaseTX
+Fa0/13    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/14    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/15    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/16    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/17    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/18    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/19    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/20    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/21    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/22    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/23    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/24    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Gig0/1    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+Gig0/2    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+
+Rehabilitación (comandos según Karla, sin salida copiada):
+
+configure terminal
+interface fa0/12
+shutdown
+no shutdown
+end
+
+Después de rehabilitar:
+
+SW-HQ-2#show port-security interface fa0/12
+Port Security              : Enabled
+Port Status                : Secure-up
+Violation Mode             : Shutdown
+Aging Time                 : 0 mins
+Aging Type                 : Absolute
+SecureStatic Address Aging : Disabled
+Maximum MAC Addresses      : 1
+Total MAC Addresses        : 1
+Configured MAC Addresses   : 0
+Sticky MAC Addresses       : 1
+Last Source Address:Vlan   : 0001.63CA.DB04:40
+Security Violation Count   : 0
+
+SW-HQ-2#show interfaces status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Po1       ETHERCHANNEL a SW- connected    trunk      a-full  a-100
+Fa0/1     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/2     TRUNK a SW-HQ-1 Fa connected    trunk      a-full  a-100 10/100BaseTX
+Fa0/3     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/4     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/5     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/6     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/7     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/8     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/9     SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/10    ACCESO a PC-ADM Fa connected    10         a-full  a-100 10/100BaseTX
+Fa0/11    ACCESO a PC-VEN Fa connected    20         a-full  a-100 10/100BaseTX
+Fa0/12    ACCESO a PC-INV Fa connected    40         a-full  a-100 10/100BaseTX
+Fa0/13    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/14    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/15    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/16    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/17    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/18    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/19    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/20    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/21    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/22    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/23    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Fa0/24    SIN USO            disabled 998        auto    auto  10/100BaseTX
+Gig0/1    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+Gig0/2    SIN USO            disabled 998        auto    auto  10/100/1000BaseTX
+
+B1.3 repetida desde PC-INV:
+
+C:\> ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- D4.2: redundancia del EtherChannel ---
+
+Ping continuo de PC-ADM a SRV-TI (detenido con Ctrl+C después del no shutdown):
+
+C:\>ping -t 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=2ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=4ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=8ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=3ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=6ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=5ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 80, Received = 74, Lost = 6 (8% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 0ms
+
+Control-C
+^C
+
+SW-HQ-1 (mientras corría el ping):
+
+SW-HQ-1#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW-HQ-1(config)#   interface fa0/1
+SW-HQ-1(config-if)#   shutdown
+
+*Nov 13, 09:37:19.3737: %LINK-5-CHANGED: Interface FastEthernet0/1, changed state to administratively down
+*Nov 13, 09:37:19.3737: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
+SW-HQ-1(config-if)#do show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(D) Fa0/2(P)
+SW-HQ-1(config-if)#no shut
+
+SW-HQ-1(config-if)#
+*Nov 13, 09:37:45.3737: %LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+*Nov 13, 09:37:45.3737: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+SW-HQ-1(config-if)#do show etherchannel summary
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-1(config-if)#end
+SW-HQ-1#
+*Nov 13, 09:37:58.3737: SYS-5-CONFIG_I: Configured from console by console
+
+Recuperación (PC-ADM, después del Ctrl+C):
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+Comprobación adicional de Karla en SW-HQ-2:
+
+SW-HQ-2#show spanning-tree
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24586
+             Address     000D.BD84.508B
+             Cost        12
+             Port        27(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28682  (priority 28672 sys-id-ext 10)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/10           Desg FWD 19        128.10   P2p
+Po1              Root FWD 12        128.27   P2p
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     000D.BD84.508B
+             Cost        12
+             Port        27(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28692  (priority 28672 sys-id-ext 20)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/11           Desg FWD 19        128.11   P2p
+Po1              Root FWD 12        128.27   P2p
+
+VLAN0040
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24616
+             Address     000D.BD84.508B
+             Cost        12
+             Port        27(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28712  (priority 28672 sys-id-ext 40)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Fa0/12           Desg FWD 19        128.12   P2p
+Po1              Root FWD 12        128.27   P2p
+
+VLAN0099
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24675
+             Address     000D.BD84.508B
+             Cost        12
+             Port        27(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    28771  (priority 28672 sys-id-ext 99)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Po1              Root FWD 12        128.27   P2p
+
+VLAN0999
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    25575
+             Address     000D.BD84.508B
+             Cost        12
+             Port        27(Port-channel1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    29671  (priority 28672 sys-id-ext 999)
+             Address     0030.F29A.CABC
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Po1              Root FWD 12        128.27   P2p
+
+D4.2, segundo intento (Karla mirando la ventana de PC-ADM; shutdown durante las
+primeras respuestas, no shutdown al empezar los timeouts).
+
+SW-HQ-1, apagado (segundo intento, 09:49:03). Primero se escribió "no shut", sin
+efecto porque el puerto estaba encendido, y después "shut". En la última línea del
+mensaje de las 09:49:03 aparece pegado "do show ethe": es el comando que Karla empezó a
+escribir mientras salía el mensaje.
+
+SW-HQ-1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW-HQ-1(config)#int f0/1
+SW-HQ-1(config-if)#no shut
+SW-HQ-1(config-if)#shut
+
+SW-HQ-1(config-if)#
+*Nov 13, 09:49:03.4949: %LINK-5-CHANGED: Interface FastEthernet0/1, changed state to administratively down
+*Nov 13, 09:49:03.4949: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to downdo show ethe
+SW-HQ-1(config-if)#do show ethe sum
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(D) Fa0/2(P)
+
+Ping continuo de PC-ADM (la "C" inicial del prompt se perdió al copiar):
+
+C:\>ping -t 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=11ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 17, Received = 11, Lost = 6 (36% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+Control-C
+^C
+
+SW-HQ-1 al terminar el segundo intento (el no shutdown y sus mensajes no están en las
+salidas copiadas):
+
+SW-HQ-1(config-if)#do show ethe sum
+Flags:  D - down        P - in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+        u - unsuitable for bundling
+        w - waiting to be aggregated
+        d - default port
+
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+----------------------------------------------
+
+1      Po1(SU)           LACP   Fa0/1(P) Fa0/2(P)
+SW-HQ-1(config-if)#end
+SW-HQ-1#
+*Nov 13, 09:52:15.5252: SYS-5-CONFIG_I: Configured from console by console
+
+=== Resumen ===
+
+| #           | Resultado                                                                 | ¿OK?            |
+|-------------|---------------------------------------------------------------------------|-----------------|
+| D1.1        | 4/4, TTL=254                                                              | Sí              |
+| D1.2        | 4/4, TTL=254                                                              | Sí              |
+| D1.3        | 4/4, TTL=253                                                              | Sí              |
+| D1.4        | Contraseña, banner, SW-HQ-1>, enable acepta el secret                     | Sí              |
+| D1.5        | Ídem en SW-HQ-2                                                           | Sí              |
+| D1.6        | Ídem en SW-SUC                                                            | Sí              |
+| D1.7        | Contraseña, banner, R-HQ# directo                                         | Sí              |
+| D1.8        | Contraseña, banner, R-SUC# directo                                        | Sí              |
+| D2.1 a D2.5 | "Trying ... Open" y cierre inmediato por el equipo remoto, sin login ni timeout | Sí (✖ esperado) |
+| D3.1        | "% Connection refused by remote host" en dos intentos; deny de ACL-VTY (R-HQ): 0 → 5 → 10, permit sin cambios / D1.7 éxito | Sí (✖ esperado) |
+| D3.2        | www.horizonte.internal → 10.10.30.10; línea 30 de ACL-INVITADOS: 0 → 1, deny sin cambios | Sí |
+| D3.3        | "% Connection timed out" en dos intentos; deny de ACL-INVITADOS (R-HQ): 827 → 839 (+12) en el primero y 855 → 867 (+12) en el segundo / D1.7 éxito | Sí (✖ esperado) |
+| D4.1        | PC nueva en Fa0/12 → violación (MAC 0006.2A60.B817), err-disabled, Secure-shutdown, 1 violación; tras shutdown/no shutdown con PC-INV: Secure-up, connected, B1.3 4/4 | Sí |
+| D4.2        | Fa0/1 de SW-HQ-1 apagada: Po1(SU) con Fa0/1(D) y Fa0/2(P); encendida: Fa0/1(P) y Fa0/2(P). Ping continuo: primer intento 74/80 (momento de las pérdidas deducido); segundo intento 11/17, con 6 timeouts seguidos al encender Fa0/1 (observado por Karla) y recuperación sin intervención | Sí |
+
+- D2: en Packet Tracer, el rechazo de Telnet con transport input ssh se ve como una
+  conexión TCP que se abre y que el equipo cierra de inmediato, sin prompt de usuario
+  (el mismo comportamiento del bloque 7). El plan no exige un texto concreto; Karla
+  aceptó como criterio que el cierre inmediato sin login es un rechazo. No se comparó
+  con IOS real. Como PC-TI está permitida por las ACLs de gestión y por la ACL-VTY, el
+  cierre solo puede deberse a transport input ssh.
+- ACL-VTY: el permit subió 3 en cada router (2 por el SSH y 1 por el Telnet, el patrón
+  medido en la central en el bloque 7) y el deny siguió en 0. En R-SUC es la primera
+  medición del permit.
+- Ningún deny de R-HQ ni de R-SUC subió durante este grupo, y ACL-INVITADOS no cambió.
+  La línea 10 de ACL-GESTION subió en los dos routers (pruebas hacia la gestión y NTP);
+  no es criterio.
+- D3.1: el deny sumó 5 por intento, una por línea VTY de R-HQ (lo mismo que en el
+  bloque 7, con el mecanismo sin determinar).
+- En Packet Tracer, los dos mecanismos de rechazo se distinguen por el mensaje: la
+  access-class (D3.1) da "Connection refused by remote host", y transport input ssh
+  (D2) da "Open" seguido de un cierre del equipo remoto. No se comparó con IOS real.
+- D3.3: da timeout y no "Connection refused" (como la D3.1) porque ACL-INVITADOS
+  descarta la conexión al entrar por la .40, antes de llegar a las VTY. Sumó 12 por
+  intento, lo mismo que en el bloque 8.
+- D4.1: los mensajes se copiaron de la consola de SW-HQ-2 (pestaña CLI), sin
+  prompt; al final de la última línea apareció el texto del banner, mezclado al
+  copiar, y se omite. La PC nueva se agregó solo para la prueba y se borró del
+  .pkt. No se tomó show port-security address: que la MAC sticky de Fa0/12 sea la
+  de PC-INV es una deducción (PC-INV volvió a conectarse sin violación y aparece
+  como última MAC). Después de shutdown/no shutdown, el contador de violaciones
+  volvió a 0 en Packet Tracer (no comparado con IOS real).
+- D4.2: Karla estaba en la ventana de SW-HQ-1 durante los cambios y no vio en qué
+  momento aparecieron los timeouts. La salida del ping no tiene horas. Deducción:
+  los 5 "Request timed out" están seguidos al final, justo antes del Ctrl+C, y entre
+  el shutdown (09:37:19) y el no shutdown (09:37:45) pasaron 26 segundos, a un eco
+  por segundo; si se hubieran perdido ecos al apagar, los timeouts aparecerían en
+  medio de la lista. Todo apunta a que no hubo pérdidas al apagar (lo que pide el
+  plan: como mucho una) y a que las pérdidas fueron al encender Fa0/1, como en el
+  bloque 4 (tests/v2-bloque4-stp-etherchannel.txt, sección 7: 19 enviados, 15
+  recibidos, 3 "Request timed out" visibles; según Karla, sin pérdidas con Fa0/1
+  apagada y timeouts al volver a encenderla; causa sin determinar). El sexto eco
+  perdido de la estadística (80 enviados, 74 recibidos) no aparece como timeout:
+  probablemente estaba en camino al pulsar Ctrl+C (deducción). El ping se detuvo
+  durante los timeouts; la recuperación se comprobó después con un ping de PC-ADM a
+  SRV-TI (4/4, TTL=127).
+- D4.2, comprobación adicional de Karla (lección del incidente 8): show
+  spanning-tree en SW-HQ-2 después del cambio. Los puertos de acceso (Fa0/10 a
+  Fa0/12) quedaron en Desg FWD y Po1 como puerto raíz en las cinco VLANs; SW-HQ-1
+  sigue siendo la raíz. No se repitió el bloqueo del incidente 8.
+- D4.2, segundo intento (repetido para registrar el momento de las pérdidas, con el
+  mismo criterio que el bloque 4): Karla miró la ventana de PC-ADM durante el
+  apagado y el encendido. Sin pérdidas con Fa0/1 apagada (el shutdown se hizo
+  mientras salían las primeras respuestas); 6 "Request timed out" seguidos que
+  empezaron al hacer no shutdown, y el ping se recuperó solo (4 respuestas después).
+  Confirma la deducción del primer intento y lo observado en el bloque 4 (3 timeouts
+  visibles). Causa sin determinar. El segundo intento tiene las dos salidas de
+  SW-HQ-1: con Fa0/1 apagada (09:49:03), Po1(SU) con Fa0/1(D) y Fa0/2(P); al
+  terminar (09:52:15), Po1(SU) con Fa0/1(P) y Fa0/2(P). El no shutdown y sus mensajes
+  no están en las salidas copiadas.
+- En el banner de R-HQ aparecen dos espacios al principio y en los demás equipos uno;
+  se revisa en la fase E (SEC-05).

@@ -1,0 +1,230 @@
+Fase C del plan de pruebas v2 (docs/plan-pruebas-v2.md): servicios DNS y web
+Fecha: 2026-11-25
+Salidas obtenidas por Karla en Packet Tracer y transcritas tal como las entregó.
+
+=== Pestaña Services de SRV-TI ===
+
+Capturas tomadas después de las pruebas de PC-ADM (el plan las pide antes de la
+fase C); la configuración de SRV-TI no cambió entre medio.
+
+Servicios activos (D27):
+- evidence/v2-final-c0-srv-ti-dns.png: DNS activo; registros A srv-ti y www hacia
+  10.10.30.10.
+- evidence/v2-final-c0-srv-ti-http.png: HTTP activo y HTTPS apagado (en Packet
+  Tracer, los dos están en el mismo panel, así que esta captura cubre los dos);
+  en File Manager solo index.html, sin archivos de ejemplo.
+- evidence/v2-final-c0-srv-ti-ntp.png: NTP activo, sin autenticación; fecha
+  13/11/2026 06:20:20 (reloj de la simulación).
+- evidence/v2-final-c0-srv-ti-syslog.png: Syslog activo; un solo mensaje (02:32:43,
+  desde 10.10.30.1, OSPF-5-ADJCHG). Los mensajes de los cinco equipos se comprueban
+  en la fase E (OP-01).
+
+Servicios apagados en el bloque 2 (D27; no los pide el plan, se agregan para cubrir
+toda la decisión):
+- evidence/v2-final-c0-srv-ti-tftp.png: TFTP apagado.
+- evidence/v2-final-c0-srv-ti-email.png: SMTP y POP3 apagados.
+- evidence/v2-final-c0-srv-ti-ftp.png: FTP apagado.
+- evidence/v2-final-c0-srv-ti-vm-management.png: VM Management apagado.
+
+Observación: con los servicios apagados, los paneles de FTP y TFTP conservan lo que
+Packet Tracer trae por defecto: imágenes IOS de ejemplo en los dos, y en FTP el
+usuario cisco (contraseña cisco, permisos RWDNL). No se pueden usar mientras el
+servicio esté apagado. En el bloque 2, "sin archivos de ejemplo" se aplicó solo a
+HTTP. Karla decidió dejarlo como observación y no cambiar la configuración durante
+la validación (candidato a mejora futura, registrado en CLAUDE.md para la fase 5).
+
+=== PC-ADM ===
+
+--- C1.1: Web Browser → http://10.10.30.10 ---
+
+evidence/v2-final-c1-web-por-ip-pc-adm.png
+
+--- C2.1: nslookup www.horizonte.internal ---
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+--- C2.4: nslookup noexiste.horizonte.internal ---
+
+C:\>nslookup noexiste.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+*** UnKnown can't find noexiste.horizonte.internal: Non-existent domain.
+
+--- C3.1: ping srv-ti.horizonte.internal ---
+
+C:\>ping srv-ti.horizonte.internal
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+--- C4.1: Web Browser → http://www.horizonte.internal ---
+
+Primer intento: evidence/v2-final-c4-web-por-nombre-pc-adm-fallo.png
+Segundo intento: evidence/v2-final-c4-web-por-nombre-pc-adm.png
+
+=== PC-VEN ===
+
+--- C2.2: nslookup srv-ti.horizonte.internal ---
+
+C:\>nslookup srv-ti.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   srv-ti.horizonte.internal
+Address:   10.10.30.10
+
+--- C4.2: Web Browser → http://www.horizonte.internal ---
+
+Primer intento: evidence/v2-final-c4-web-por-nombre-pc-ven-fallo.png
+Segundo intento: evidence/v2-final-c4-web-por-nombre-pc-ven.png
+
+=== PC-SUC ===
+
+--- C2.3: nslookup www.horizonte.internal ---
+
+C:\>nslookup www.horizonte.internal
+
+Server: [10.10.30.10]
+Address:  10.10.30.10
+
+Non-authoritative answer:
+Name:   www.horizonte.internal
+Address:   10.10.30.10
+
+--- C3.2: ping srv-ti.horizonte.internal ---
+
+C:\>ping srv-ti.horizonte.internal
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time=10ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+--- C4.3: Web Browser → http://www.horizonte.internal ---
+
+Primer intento (cargó): evidence/v2-final-c4-web-por-nombre-pc-suc.png
+
+=== PC-INV ===
+
+--- C4.4: R-HQ (7:58:52), Web Browser → http://www.horizonte.internal, R-HQ (8:01:06),
+    segundo intento, R-HQ (8:03:46) ---
+
+La lectura de las 7:58:52 es la del después de la D3.2 (tests/v2-acceso.txt).
+Después de cada intento se cerró el navegador.
+
+R-HQ#show clock
+7:58:52.404 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2603 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (1 match(es))
+    40 deny ip any any (23 match(es))
+
+Primer intento: "Request Timeout".
+
+R-HQ#show clock
+8:1:6.729 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2619 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (37 match(es))
+    40 deny ip any any (470 match(es))
+
+Segundo intento: "Request Timeout" (evidence/v2-final-c4-web-por-nombre-pc-inv.png).
+
+R-HQ#show clock
+8:3:46.999 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2638 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (827 match(es))
+
+=== Resumen (se completa por grupos) ===
+
+| #    | Origen | Resultado                                                      | ¿OK?                |
+|------|--------|----------------------------------------------------------------|---------------------|
+| C1.1 | PC-ADM | Carga la página de SRV-TI por IP                               | Sí                  |
+| C2.1 | PC-ADM | www.horizonte.internal → 10.10.30.10                           | Sí                  |
+| C2.4 | PC-ADM | Non-existent domain                                            | Sí                  |
+| C3.1 | PC-ADM | Pinging 10.10.30.10, 4/4, TTL=127                              | Sí                  |
+| C4.1 | PC-ADM | Primer intento "Host Name Unresolved"; segundo carga la página | Sí, con observación |
+| C2.2 | PC-VEN | srv-ti.horizonte.internal → 10.10.30.10                        | Sí                  |
+| C4.2 | PC-VEN | Primer intento "Host Name Unresolved"; segundo carga la página | Sí, con observación |
+| C2.3 | PC-SUC | www.horizonte.internal → 10.10.30.10                           | Sí                  |
+| C3.2 | PC-SUC | Pinging 10.10.30.10, 4/4, TTL=126                              | Sí                  |
+| C4.3 | PC-SUC | Carga la página al primer intento                              | Sí                  |
+| C4.4 | PC-INV | "Request Timeout" en dos intentos; deny de ACL-INVITADOS (R-HQ): 23 → 470 → 827 / C4.1 éxito | Sí (✖ esperado) |
+
+- C4.1 y C4.2: en PC-ADM y PC-VEN, el primer intento en el navegador dio "Host Name
+  Unresolved" y el segundo cargó la misma página que la C1.1 (capturas -fallo y
+  normal de cada PC). El DNS respondía: en PC-ADM, la C2.1 (nslookup del mismo
+  nombre) se hizo antes de la C4.1 y se repitió después del fallo, y según Karla las
+  dos ejecuciones resolvieron 10.10.30.10 (se transcribe una sola salida); en
+  PC-VEN, la C2.2 resolvió srv-ti.horizonte.internal. Haber resuelto el nombre con
+  nslookup no evitó el fallo en PC-ADM. Causa sin determinar. Hipótesis no
+  comprobada: la primera consulta DNS del navegador de Packet Tracer expira antes de
+  recibir la respuesta. Se dan por cumplidas porque el segundo intento carga la
+  página. En la C4.3 (PC-SUC), en las mismas condiciones (modo Realtime, con un
+  nslookup previo del mismo nombre, como en PC-ADM), la página cargó al primer
+  intento, así que el fallo no se repite en todas las PCs.
+- C4.4: los dos intentos mostraron la misma pantalla, "Request Timeout" (el nombre se
+  resolvió, D3.2); se conserva una sola captura
+  (evidence/v2-final-c4-web-por-nombre-pc-inv.png). El deny de ACL-INVITADOS subió
+  447 en el primero y 357 en el segundo, y la línea 30 (DNS) subió 36 y 30: casi
+  exactamente 12 deny por consulta DNS. Deducción no comprobada: mientras el
+  navegador estuvo abierto, repitió el intento unas 30 a 36 veces, resolviendo el
+  nombre cada vez (+1 en la línea 30) e intentando la conexión TCP (+12 en el deny,
+  como en el bloque 8 y en la D3.3). La proporción no es exacta (36 × 12 = 432). Con
+  el navegador cerrado, la línea 30 no cambió entre las 8:03:46 y las 8:15:14. En
+  PC-INV no hubo "Host Name Unresolved" en el primer intento.

@@ -1,0 +1,923 @@
+Fase B del plan de pruebas v2 (docs/plan-pruebas-v2.md): conectividad
+Fecha: 2026-11-25
+Salidas obtenidas por Karla en Packet Tracer y transcritas tal como las entregó.
+Las pruebas se ejecutaron agrupadas por equipo de origen y se ordenan igual aquí.
+Horas: reloj de la simulación (show clock, UTC), salvo el "antes" inicial de R-SUC
+(10:27, hora local del computador de Karla).
+IP-ADM = 10.10.10.21, IP-VEN = 10.10.20.21, IP-INV = 10.10.40.21,
+IP-SUC = 10.20.50.21 (fase A, tests/v2-dhcp-pcs.txt).
+
+=== Contadores iniciales de R-SUC (10:27, hora local) ===
+
+R-SUC#terminal length 0
+               ^
+% Invalid input detected at '^' marker.
+
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (6 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+
+(Los de R-HQ están en tests/v2-dhcp-pcs.txt.)
+
+=== PC-ADM ===
+
+--- B1.1: ping 10.10.10.1 ---
+
+C:\>ping 10.10.10.1
+
+Pinging 10.10.10.1 with 32 bytes of data:
+
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.10.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+--- B2.1: ping 10.10.20.21 (dos ejecuciones) ---
+
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+C:\>ping 10.10.20.21
+
+Pinging 10.10.20.21 with 32 bytes of data:
+
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time<1ms TTL=127
+Reply from 10.10.20.21: bytes=32 time=17ms TTL=127
+Reply from 10.10.20.21: bytes=32 time=11ms TTL=127
+
+Ping statistics for 10.10.20.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 17ms, Average = 7ms
+
+--- B2.3: ping 10.10.30.10 ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.5: ping 10.20.50.21 (dos ejecuciones) ---
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Request timed out.
+Reply from 10.20.50.21: bytes=32 time=10ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=10ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 6ms
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=12ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=10ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=11ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 12ms, Average = 8ms
+
+--- B4.3, primer intento: R-SUC (5:29:05), ping 10.20.99.11, R-SUC (5:30:30) ---
+
+R-SUC#show clock
+5:29:5.599 UTC Fri Nov 13 2026
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (738 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+
+C:\>ping 10.20.99.11
+
+Pinging 10.20.99.11 with 32 bytes of data:
+
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+
+Ping statistics for 10.20.99.11:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-SUC#show clock
+5:30:30.16 UTC Fri Nov 13 2026
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (740 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (4 match(es))
+
+--- B4.3, segundo intento: R-HQ (6:08:38), ping 10.20.99.11, R-HQ (6:10:03),
+    R-SUC (6:10:45) ---
+
+R-HQ#show clock
+6:8:38.40 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (5 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (1839 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+C:\>ping 10.20.99.11
+
+Pinging 10.20.99.11 with 32 bytes of data:
+
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+Reply from 10.255.255.2: Destination host unreachable.
+
+Ping statistics for 10.20.99.11:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+6:10:3.219 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (5 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (1849 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any
+
+R-SUC#show clock
+6:10:45.709 UTC Fri Nov 13 2026
+R-SUC#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (867 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+
+=== PC-VEN ===
+
+--- B1.2: ping 10.10.20.1 ---
+
+C:\>ping 10.10.20.1
+
+Pinging 10.10.20.1 with 32 bytes of data:
+
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.20.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.20.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+--- B2.2: ping 10.10.40.21 (dos intentos seguidos), R-HQ (6:49:08) ---
+
+"Antes": lectura de R-HQ de las 6:14:00 (tests/v2-acceso.txt, D3.1), con el deny de
+ACL-INVITADOS en 0.
+
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+C:\>ping 10.10.40.21
+
+Pinging 10.10.40.21 with 32 bytes of data:
+
+Request timed out.
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.10.40.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+6:49:8.349 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2085 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+--- B2.4: ping 10.10.30.10 ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=127
+Reply from 10.10.30.10: bytes=32 time=12ms TTL=127
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 12ms, Average = 3ms
+
+--- B3.6: ping 10.20.50.21 ---
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=10ms TTL=126
+Reply from 10.20.50.21: bytes=32 time=12ms TTL=126
+Reply from 10.20.50.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 12ms, Average = 5ms
+
+=== PC-SUC ===
+
+--- B1.4: ping 10.20.50.1 ---
+
+C:\>ping 10.20.50.1
+
+Pinging 10.20.50.1 with 32 bytes of data:
+
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+Reply from 10.20.50.1: bytes=32 time=11ms TTL=255
+Reply from 10.20.50.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.20.50.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 11ms, Average = 2ms
+
+--- B3.1: ping 10.255.255.2 ---
+
+C:\>ping 10.255.255.2
+
+Pinging 10.255.255.2 with 32 bytes of data:
+
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+Reply from 10.255.255.2: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.255.255.2:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.2: ping 10.255.255.1 ---
+
+C:\>ping 10.255.255.1
+
+Pinging 10.255.255.1 with 32 bytes of data:
+
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+Reply from 10.255.255.1: bytes=32 time<1ms TTL=254
+
+Ping statistics for 10.255.255.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+--- B3.3: ping 10.10.30.10 ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time=12ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+Reply from 10.10.30.10: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 12ms, Average = 3ms
+
+--- B3.4: ping 10.10.10.21 ---
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time=10ms TTL=126
+Reply from 10.10.10.21: bytes=32 time=1ms TTL=126
+Reply from 10.10.10.21: bytes=32 time<1ms TTL=126
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 10ms, Average = 2ms
+
+--- B4.4: R-HQ (7:07:16), ping 10.10.99.11, R-HQ (7:08:35), ping 10.10.99.11,
+    R-HQ (7:09:27) ---
+
+R-HQ#show clock
+7:7:16.335 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2223 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+C:\>ping 10.10.99.11
+
+Pinging 10.10.99.11 with 32 bytes of data:
+
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+
+Ping statistics for 10.10.99.11:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:8:35.217 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2231 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (4 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+C:\>ping 10.10.99.11
+
+Pinging 10.10.99.11 with 32 bytes of data:
+
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+Reply from 10.255.255.1: Destination host unreachable.
+
+Ping statistics for 10.10.99.11:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:9:27.333 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2237 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+=== PC-INV ===
+
+Lecturas de R-HQ encadenadas: cada una es el "después" de una prueba y el "antes" de la
+siguiente, y se transcribe una vez. Las lecturas de la D3.2, la C4.4 y la D3.3 están en
+tests/v2-acceso.txt y tests/v2-dns-web.txt.
+
+--- R-HQ, lectura inicial (7:50:25) ---
+
+R-HQ#show clock
+7:50:25.667 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2541 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+--- B1.3: ping 10.10.40.1 ---
+
+C:\>ping 10.10.40.1
+
+Pinging 10.10.40.1 with 32 bytes of data:
+
+Reply from 10.10.40.1: bytes=32 time=1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+Reply from 10.10.40.1: bytes=32 time<1ms TTL=255
+
+Ping statistics for 10.10.40.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 0ms, Maximum = 1ms, Average = 0ms
+
+R-HQ#show clock
+7:54:9.336 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2569 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (7 match(es))
+
+--- B2.5, primer intento: ping 10.10.30.10 ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:55:0.325 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2575 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (11 match(es))
+
+--- B2.6, primer intento: ping 10.10.10.21 ---
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:55:52.515 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2581 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (15 match(es))
+
+--- B3.7, primer intento: ping 10.20.50.21 ---
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:56:49.926 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2589 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (19 match(es))
+
+--- B4.5, primer intento: ping 10.10.99.12 ---
+
+C:\>ping 10.10.99.12
+
+Pinging 10.10.99.12 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.99.12:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+7:57:49.221 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2595 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain
+    40 deny ip any any (23 match(es))
+
+(Aquí se hicieron la D3.2, la C4.4 y el primer intento de la D3.3.)
+
+--- R-HQ antes de los segundos intentos (8:06:39, después del primer intento de la D3.3) ---
+
+R-HQ#show clock
+8:6:39.543 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2659 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (839 match(es))
+
+--- B2.5, segundo intento: ping 10.10.30.10 ---
+
+C:\>ping 10.10.30.10
+
+Pinging 10.10.30.10 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.30.10:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+8:11:46.738 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2697 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (843 match(es))
+
+--- B2.6, segundo intento: ping 10.10.10.21 ---
+
+C:\>ping 10.10.10.21
+
+Pinging 10.10.10.21 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.10.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+8:12:29.934 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2702 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (847 match(es))
+
+--- B3.7, segundo intento: ping 10.20.50.21 ---
+
+C:\>ping 10.20.50.21
+
+Pinging 10.20.50.21 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.20.50.21:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+8:13:22.679 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2705 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (851 match(es))
+
+--- B4.5, segundo intento: ping 10.10.99.12 ---
+
+C:\>ping 10.10.99.12
+
+Pinging 10.10.99.12 with 32 bytes of data:
+
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+Reply from 10.10.40.1: Destination host unreachable.
+
+Ping statistics for 10.10.99.12:
+    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+R-HQ#show clock
+8:14:15.172 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2710 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (855 match(es))
+
+=== Routers ===
+
+--- B4.1: R-HQ, ping 10.10.99.11 y ping 10.10.99.12 ---
+
+R-HQ#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/1 ms
+
+R-HQ#ping 10.10.99.12
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.12, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/3/17 ms
+
+--- B4.2: R-SUC, ping 10.20.99.11 ---
+
+R-SUC#ping 10.20.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.20.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+
+--- B4.6: R-HQ (sin hora), R-SUC ping 10.10.99.11, R-HQ (8:40:43) ---
+
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2780 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (867 match(es))
+
+R-SUC#ping 10.10.99.11
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.10.99.11, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/3 ms
+
+R-HQ#show clock
+8:40:43.854 UTC Fri Nov 13 2026
+R-HQ#show access-lists
+Standard IP access list ACL-VTY
+    10 permit 10.10.30.0 0.0.0.255 (3 match(es))
+    20 deny any (10 match(es))
+Extended IP access list ACL-GESTION
+    10 permit ip 10.10.30.0 0.0.0.255 any (2784 match(es))
+    20 permit ip 10.255.255.0 0.0.0.3 any (5 match(es))
+    30 deny ip any any (8 match(es))
+Extended IP access list ACL-INVITADOS
+    10 permit udp any eq bootpc any eq bootps (5 match(es))
+    20 permit icmp any host 10.10.40.1 echo (4 match(es))
+    30 permit udp any host 10.10.30.10 eq domain (67 match(es))
+    40 deny ip any any (867 match(es))
+
+=== Resumen (se completa por grupos) ===
+
+| #    | Origen | Destino     | Resultado                                           | Contador / control                                  | ¿OK?            |
+|------|--------|-------------|-----------------------------------------------------|-----------------------------------------------------|-----------------|
+| B1.1 | PC-ADM | 10.10.10.1  | 4/4, TTL=255                                        | —                                                   | Sí              |
+| B2.1 | PC-ADM | 10.10.20.21 | 3/4 (ARP); repetición 4/4, TTL=127                  | —                                                   | Sí              |
+| B2.3 | PC-ADM | 10.10.30.10 | 4/4, TTL=127                                        | —                                                   | Sí              |
+| B3.5 | PC-ADM | 10.20.50.21 | 3/4 (ARP); repetición 4/4, TTL=126                  | —                                                   | Sí              |
+| B4.3 | PC-ADM | 10.20.99.11 | 0/4 en dos intentos; unreachable desde 10.255.255.2 | Deny de ACL-GESTION (R-SUC): 0 → 4 → 8 / D1.3 éxito | Sí (✖ esperado) |
+| B1.2 | PC-VEN | 10.10.20.1  | 4/4, TTL=255                                        | —                                                   | Sí              |
+| B2.2 | PC-VEN | 10.10.40.21 | 0/4 en dos intentos; "Request timed out"            | Deny de ACL-INVITADOS (R-HQ): 0 → 7 / B1.3 éxito    | Sí (✖ esperado) |
+| B2.4 | PC-VEN | 10.10.30.10 | 4/4, TTL=127                                        | —                                                   | Sí              |
+| B3.6 | PC-VEN | 10.20.50.21 | 4/4, TTL=126                                        | —                                                   | Sí              |
+| B1.4 | PC-SUC | 10.20.50.1  | 4/4, TTL=255                                        | —                                                   | Sí              |
+| B3.1 | PC-SUC | 10.255.255.2 | 4/4, TTL=255                                       | —                                                   | Sí              |
+| B3.2 | PC-SUC | 10.255.255.1 | 4/4, TTL=254                                       | —                                                   | Sí              |
+| B3.3 | PC-SUC | 10.10.30.10 | 4/4, TTL=126                                        | —                                                   | Sí              |
+| B3.4 | PC-SUC | 10.10.10.21 | 4/4, TTL=126                                        | —                                                   | Sí              |
+| B4.4 | PC-SUC | 10.10.99.11 | 0/4 en dos intentos; unreachable desde 10.255.255.1 | Deny de ACL-GESTION (R-HQ): 0 → 4 → 8 / D1.1 éxito | Sí (✖ esperado) |
+| B1.3 | PC-INV | 10.10.40.1  | 4/4, TTL=255                                        | Línea 20 de ACL-INVITADOS: 0 → 4 (no es criterio)   | Sí              |
+| B2.5 | PC-INV | 10.10.30.10 | 0/4 en dos intentos; unreachable desde 10.10.40.1   | Deny de ACL-INVITADOS (R-HQ): 7 → 11; 839 → 843 / B2.3 éxito | Sí (✖ esperado) |
+| B2.6 | PC-INV | 10.10.10.21 | 0/4 en dos intentos; unreachable desde 10.10.40.1   | Deny de ACL-INVITADOS (R-HQ): 11 → 15; 843 → 847 / B3.4 éxito | Sí (✖ esperado) |
+| B3.7 | PC-INV | 10.20.50.21 | 0/4 en dos intentos; unreachable desde 10.10.40.1   | Deny de ACL-INVITADOS (R-HQ): 15 → 19; 847 → 851 / B3.6 éxito | Sí (✖ esperado) |
+| B4.5 | PC-INV | 10.10.99.12 | 0/4 en dos intentos; unreachable desde 10.10.40.1   | Deny de ACL-INVITADOS (R-HQ): 19 → 23; 851 → 855 / D1.2 éxito | Sí (✖ esperado) |
+| B4.1 | R-HQ   | 10.10.99.11 y 10.10.99.12 | 5/5 en los dos                        | —                                                   | Sí              |
+| B4.2 | R-SUC  | 10.20.99.11 | 5/5                                                 | —                                                   | Sí              |
+| B4.6 | R-SUC  | 10.10.99.11 | 5/5                                                 | Línea 20 de ACL-GESTION (R-HQ): 0 → 5               | Sí              |
+
+- B4.3: el "Destination host unreachable" lo envía R-SUC desde su interfaz WAN
+  (10.255.255.2), el router que tiene la ACL, no el destino (limitación del bloque 8:
+  en IOS real sería "administratively prohibited", no comparado). El deny sumó 4 en
+  cada intento, uno por eco.
+- B4.3, segundo intento: el antes y el después se leyeron por error en R-HQ, que no
+  tiene la ACL de esta prueba; R-SUC se leyó solo después (6:10:45). El "antes" de
+  R-SUC es el de las 5:30:30, después del primer intento. Que el +4 venga de este
+  intento es una deducción: entre las 5:30:30 y las 6:10:45 las demás pruebas (C1.1 a
+  C4.1 y el primer intento de la D3.1) fueron hacia SRV-TI o R-HQ, y ninguna pasa por
+  la .99 de R-SUC. Karla la dio por cumplida con esta nota.
+- B2.2: los dos intentos se hicieron seguidos, sin show en el medio. El "antes" es
+  la lectura de R-HQ de las 6:14:00 (tests/v2-acceso.txt, D3.1), con el deny de
+  ACL-INVITADOS en 0; entre las 6:14:00 y las 6:49:08 no hubo tráfico de PC-INV
+  (solo capturas de SRV-TI). El deny subió 7; se esperaban 8 (un eco bloqueado por
+  respuesta). Diferencia sin causa comprobada. Hipótesis no comprobada: el primer
+  eco se descartó en R-HQ mientras resolvía por ARP la MAC de 10.10.40.21, así que
+  PC-INV respondió 7 veces. PC-VEN ve "Request timed out" porque se bloquea la
+  respuesta de PC-INV, no su pedido.
+- B4.4: el "Destination host unreachable" lo envía R-HQ desde su interfaz WAN
+  (10.255.255.1), el router que tiene la ACL de gestión de la central. Se leyó R-HQ
+  antes del primer intento, entre los dos y después del segundo (7:07:16, 7:08:35
+  y 7:09:27): el deny sumó 4 en cada intento, uno por eco.
+- PC-INV: las lecturas de R-HQ están encadenadas: cada una es el "después" de una
+  prueba y el "antes" de la siguiente, y se transcribe una vez. Orden de ejecución:
+  B1.3, primeros intentos de B2.5, B2.6, B3.7 y B4.5, D3.2, C4.4, primer intento de
+  la D3.3, y después los segundos intentos de B2.5, B2.6, B3.7, B4.5 y D3.3.
+- B1.3: no hay lectura justo después; la siguiente (7:54:09) muestra la línea 20 de
+  ACL-INVITADOS (eco al gateway) en 4, y entre medio solo hubo este ping. Es el
+  control de la B2.2.
+- B2.5, B2.6, B3.7 y B4.5: el "Destination host unreachable" lo envía 10.10.40.1, la
+  subinterfaz de R-HQ donde está aplicada ACL-INVITADOS de entrada. El deny sumó 4
+  en cada intento, uno por eco.
+- B4.5: el deny de ACL-GESTION siguió en 8 durante todo el grupo: el paquete lo
+  bloquea ACL-INVITADOS al entrar, antes de llegar a la ACL de gestión.
+- B4.1: el deny de ACL-GESTION de R-HQ siguió en 8 entre la lectura de las 8:15:14
+  (tests/v2-acceso.txt, D3.3) y la anterior a la B4.6, intervalo en el que se hizo
+  la B4.1. Deducción: los pings del propio router salen con origen 10.10.99.1, que no
+  está permitido; si pasaran por la ACL de salida, habrían sumado en el deny.
+  Coincide con la observación del bloque 8 (el tráfico del propio router no pasa por
+  su ACL de salida).
+- B4.2: no se leyeron los contadores de R-SUC; la evidencia es solo el éxito del ping.
+- B4.1, B4.2 y B4.6 se hicieron después de la D4.1 (08:23), con Fa0/12 de SW-HQ-2
+  en err-disabled. No las afecta: van a la gestión por los trunks y no pasan por
+  Fa0/12 ni por ACL-INVITADOS.
+- B4.6: la línea 20 de ACL-GESTION (origen 10.255.255.0/30) sumó 5, uno por eco: es
+  la primera coincidencia de esa línea en las pruebas finales y confirma que el
+  origen WAN está permitido (D4). La lectura anterior se tomó sin show clock.

@@ -453,9 +453,13 @@ o DHCPv6 sin estado) y las IPv6 fijas de SRV-TI y PC-TI. Contenido previsto:
 
 ## Exportación y pruebas finales
 
+**Orden (decidido por Karla el 2026-11-25):** 1. Fases A a E de `docs/plan-pruebas-v2.md`
+sobre la v2 en IPv4. 2. Exportación de las cinco running-config y commit. 3. Bloque 9
+(IPv6) y fase F.
+
 **Cuándo exportar las running-config a `configurations/v2/`**
 
-1. **Al terminar el bloque 8**, cuando IPv4 esté completo y validado:
+1. **Después de las fases A a E**, cuando IPv4 esté completo y validado:
    - Guardar la configuración en cada equipo.
    - Exportar las cinco running-config completas, sin omitir nada (D9), con el mismo
      método que en la v1.

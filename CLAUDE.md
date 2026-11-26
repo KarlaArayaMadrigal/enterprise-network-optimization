@@ -313,7 +313,9 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
   o revisar `show startup-config` completa.
 - Observación (bloque 4): en la prueba de redundancia, al apagar Fa0/1 de SW-HQ-1 el ping
   continuo de PC-ADM a SRV-TI no perdió paquetes; al volver a encenderla hubo al menos 3
-  timeouts seguidos y se recuperó solo. Causa sin determinar.
+  timeouts seguidos y se recuperó solo. Causa sin determinar. Se repitió en la D4.2 de
+  las pruebas finales (segundo intento, observado: 6 timeouts seguidos al encender, sin
+  pérdidas al apagar; tests/v2-acceso.txt).
 - Bloque 5 (DHCP snooping): terminado y verificado (`tests/v2-bloque5-dhcp-snooping.txt`
   y `tests/v2-bloque5-simulacion-dhcp.txt`).
 - Diferencia con la D19 (bloque 5): SW-HQ-2 queda sin DHCP snooping. El Port-channel 1
@@ -378,8 +380,31 @@ Se actualiza al cerrar cada bloque de `docs/plan-v2.md`.
 - Observación (bloque 8, sin causa determinada): después de la ACL de R-HQ, el NTP de
   SW-HQ-2 apareció reiniciado (.INIT., stratum 16) y volvió a sincronizar solo, con la
   ACL aplicada.
-- Siguiente: guardar los cinco equipos y exportar las running-config a
-  `configurations/v2/` (v2 en IPv4); después, el bloque 9 (IPv6).
+- Limitación de Packet Tracer (pruebas finales de la v2): `terminal length 0` no existe en
+  el ISR4331 (Invalid input en `length`); en el 2960 no se ha probado. Las salidas largas
+  se completan con la barra espaciadora en `--More--`.
+- Pruebas finales de la v2 en IPv4 (2026-11-25): fases A a D completas y con evidencia
+  (`tests/v2-dhcp-pcs.txt`, `tests/v2-ping.txt`, `tests/v2-dns-web.txt` y
+  `tests/v2-acceso.txt`). Los fallos esperados de la D7 fallaron en dos intentos con el
+  deny de su ACL subiendo; el resto dio éxito.
+- Observación (pruebas finales, sin causa determinada): en la C4.1 y la C4.2, el primer
+  intento del navegador dio "Host Name Unresolved" y el segundo cargó; en la C4.3 cargó
+  al primer intento. Investigarlo en modo Simulation queda como opcional para el final.
+- Siguiente (decidido por Karla el 2026-11-25): fase E junto con la exportación. En cada
+  equipo, `copy running-config startup-config` y un solo `show running-config`, que sirve
+  para la fase E (`tests/v2-config-show.txt`) y para `configurations/v2/`. Si la fase E
+  obliga a corregir algo, se vuelve a exportar ese equipo. Después, el bloque 9 (IPv6).
+
+## Candidatos a mejora futura (para la fase 5)
+
+Decisiones de no cambiar la configuración durante la validación, para mencionar en la
+documentación final.
+
+- SRV-TI, FTP y TFTP (pruebas finales de la v2, 2026-11-25): con los servicios apagados,
+  los paneles conservan lo que Packet Tracer trae por defecto: imágenes IOS de ejemplo en
+  los dos y, en FTP, el usuario `cisco` (contraseña `cisco`, permisos RWDNL). Mejora:
+  borrar el usuario y los archivos. Karla decidió no cambiarlo durante la validación
+  (`tests/v2-dns-web.txt`).
 
 ## Incidentes encontrados durante la construcción (para el Proyecto 2)
 

@@ -131,8 +131,8 @@ activos, HTTPS apagado y sin archivos de ejemplo.
 | D1.4 | PC-TI | SSH con el usuario a 10.10.99.11 (SW-HQ-1) | Pide contraseña, entra y `enable` acepta el secret | |
 | D1.5 | PC-TI | SSH a 10.10.99.12 (SW-HQ-2) | Ídem | |
 | D1.6 | PC-TI | SSH a 10.20.99.11 (SW-SUC) | Ídem | |
-| D1.7 | PC-TI | SSH a 10.10.30.1 (R-HQ) | Ídem | |
-| D1.8 | PC-TI | SSH a 10.20.50.1 (R-SUC) | Ídem | |
+| D1.7 | PC-TI | SSH a 10.10.30.1 (R-HQ) | Pide contraseña y entra directo a `#` (privilegio 15 en los routers) | |
+| D1.8 | PC-TI | SSH a 10.20.50.1 (R-SUC) | Pide contraseña y entra directo a `#` (privilegio 15 en los routers) | |
 
 ### D2. Telnet desactivado (D7)
 
@@ -159,9 +159,10 @@ El resto de la D7 ya está cubierto por otras pruebas: "Invitados obtiene IP por
 la A3 y "no carga la web interna" es la C4.4.
 
 En la D3.1, el contador es el del deny final de la ACL estándar de las VTY (bloque 7 de
-`docs/plan-v2.md`). Por comprobar en Packet Tracer: si el contador de una ACL usada como
-`access-class` sube en `show access-lists`. Si no sube, se documenta como limitación del
-simulador y la D3.1 se valida con las condiciones 1 y 3.
+`docs/plan-v2.md`). Comprobado en el bloque 7 (`tests/v2-bloque7-acceso-seguro.txt`):
+el contador de una ACL usada como `access-class` sí sube en `show access-lists`. El deny
+suma tantas coincidencias como líneas VTY tiene el equipo por cada intento rechazado (5
+en R-HQ), con el mecanismo sin determinar. El criterio de la D3.1 es que el deny suba.
 
 ### D4. Protecciones de capa 2
 
@@ -190,7 +191,7 @@ el README.
 | SEG-02 | B4.3 a B4.5, D3.1 y `show access-lists` en los dos routers | Fallan y sube el contador del deny final de cada ACL de gestión y de la ACL de las VTY (D3.1); D1 da éxito |
 | SW-01 | `show vlan brief` y `show ip interface brief` en los 3 switches | Puertos sin uso en la VLAN 998 y en administratively down |
 | SW-02 | `show interfaces trunk` y `show interfaces <trunk> switchport` | Nativa 999, VLANs permitidas de la D14, negociación desactivada |
-| SW-03 | `show spanning-tree` (puertos "P2p Edge"), `show port-security` y D4.1 | PortFast, BPDU Guard y port-security en todos los puertos de acceso; violación demostrada |
+| SW-03 | `show spanning-tree interface <puerto> detail` en cada puerto de acceso, `show running-config`, `show port-security` y D4.1 | "The port is in the portfast mode" en cada puerto de acceso; `spanning-tree bpduguard enable` en la running-config (el detalle no muestra BPDU Guard, limitación del bloque 3); port-security en todos los puertos de acceso; violación demostrada |
 | SW-04 | `show spanning-tree`, `show etherchannel summary` y D4.2 | rstp, SW-HQ-1 raíz por prioridad, Po1 (SU) con LACP, ningún puerto en BLK; redundancia demostrada |
 | SW-05 | `show ip dhcp snooping` en SW-SUC y SW-HQ-2 | SW-SUC: activo en la VLAN 50, opción 82 desactivada y solo Gi0/1 como confiable. SW-HQ-2: desactivado, sin VLANs (diferencia con la D19 del bloque 5, ver `CLAUDE.md`); hallazgo corregido solo en la sucursal |
 | SW-06 | `show cdp interface` en SW-HQ-2 Fa0/12 | El puerto no aparece |
@@ -198,10 +199,10 @@ el README.
 | RT-02 | `show ip ospf interface G0/0/1` y `show ip ospf neighbor` | Autenticación message-digest y vecino en FULL |
 | DIS-01 | Fase F (bloque 9) | Pendiente |
 | OP-01 | `show ntp status`, `show logging` y la pestaña SYSLOG de SRV-TI | Sincronizado con 10.10.30.10, marcas de tiempo y mensajes de los 5 equipos |
-| OP-02 | `show interfaces description` | Descripciones en todas las interfaces en uso |
+| OP-02 | Switches: `show interfaces description`. Routers: `show running-config \| include interface\|description` (el ISR4331 no tiene `show interfaces description`, limitación del bloque 2) | Descripciones en todas las interfaces en uso |
 | OP-03 | `show running-config` en SW-HQ-1 | Búsqueda de nombres desactivada |
 | OP-04 | Captura de la pestaña Services de SRV-TI | HTTPS apagado y sin archivos de ejemplo |
-| INFO-01 | `show line` y `show running-config` | Todas las líneas VTY con la misma configuración |
+| INFO-01 | `show running-config \| section line vty` en los 5 equipos (si Packet Tracer no acepta `section`, `show running-config` completa). `show line` no existe en el 2960 y, en el ISR4331, la columna AccI no muestra la `access-class` (limitación del bloque 7) | Todas las líneas VTY con la misma configuración |
 
 ## Fase F — IPv6 (bloque 9)
 
@@ -232,5 +233,10 @@ Además de la tabla de diagnóstico de `docs/plan-pruebas-v1.md`:
   - `v2-dns-web.txt` (fase C)
   - `v2-acceso.txt` (fase D)
   - `v2-config-show.txt` (fase E)
-- Capturas en `evidence/` con el prefijo `v2-`, por ejemplo
-  `v2-c4-web-por-nombre-pc-inv.png`.
+- Capturas en `evidence/` con el prefijo `v2-final-` y el formato
+  `v2-final-<prueba>-<qué muestra>-<equipo>.png`, por ejemplo
+  `v2-final-c4-web-por-nombre-pc-inv.png`. El prefijo las separa de las capturas de
+  los bloques (`v2-bloqueN-…`) y evita sobrescribir
+  `v2-c4-web-por-nombre-pc-inv.png`, la captura de la C4.4 del bloque 8 que cita
+  `tests/v2-bloque8-acls.txt`. Las capturas de la pestaña Services de SRV-TI siguen el
+  formato de la v1: `v2-final-c0-srv-ti-<servicio>.png`.
